@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Search Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-search me-2"></i>
+                        {% if results.query %}
+                        Search Results
+                        {% else %}
+                        Search
+                        {% endif %}
+                    </h1>
+                    {% if results.query %}
+                    <p class="text-muted mb-0">
+                        Results for "<strong>{{ results.query }}</strong>"
+                    </p>
+                    {% else %}
+                    <p class="text-muted mb-0">Find pages and content across your workspace</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-md-8 col-lg-6">
+            <form method="GET" action="{{ url_for('main.search') }}">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-lg" name="query" 
+                           placeholder="Search pages and content..." 
+                           value="{{ results.query if results.query else '' }}" autofocus>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+    <!-- Search Results -->
+    <div class="row">
+        <div class="col">
+            <!-- Categories Results -->
+            {% if results.categories %}
+            <div class="mb-5">
+                <h3 class="mb-3">
+                    <i class="bi bi-folder me-2"></i>
+                    Workspaces ({{ results.categories|length }})
+                </h3>
+                <div class="row g-3">
+                    {% for category in results.categories %}
+                    <div class="col-lg-4 col-md-6">
+                        <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="search-result d-block">
+                            <div class="d-flex align-items-center">
+                                <div class="category-icon me-3" style="background-color: {{ category.color }}20; color: {{ category.color }};">
+                                    {{ category.icon }}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1">{{ category.title }}</h5>
+                                    {% if category.description %}
+                                    <p class="text-muted small mb-0 text-truncate">{{ category.description }}</p>
+                                    {% endif %}
+                                    <small class="text-muted">{{ category.pages|length }} page{{ 's' if category.pages|length != 1 else '' }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Pages Results -->
+            {% if results.pages %}
+            <div class="mb-4">
+                <h3 class="mb-3">
+                    <i class="bi bi-file-text me-2"></i>
+                    Pages ({{ results.pages|length }})
+                </h3>
+                <div class="page-list">
+                    {% for page in results.pages %}
+                    <a href="{{ url_for('categories.view_page', category_slug=page.category.slug, page_slug=page.slug) }}" 
+                       class="page-item">
+                        <div class="d-flex align-items-center">
+                            <span class="page-icon">{{ page.icon }}</span>
+                            <div class="flex-grow-1">
+                                <div class="fw-medium">{{ page.title }}</div>
+                                <div class="page-meta">
+                                    in {{ page.category.icon }} {{ page.category.title }} • 
+                                    {{ page.updated_at.strftime('%b %d, %Y') }}
+                                    {% if page.content_blocks|length > 0 %}
+                                    • {{ page.content_blocks|length }} block{{ 's' if page.content_blocks|length != 1 else '' }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- No Results -->
+            {% if results.query and not results.categories and not results.pages %}
+            <div class="text-center py-5">
+                <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 mb-2">No results found</h3>
+                <p class="text-muted mb-4">Try different keywords or check your spelling</p>
+                <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                        <i class="bi bi-house me-2"></i>
+                        Go to Dashboard
+                    </a>
+                    <a href="{{ url_for('categories.create_category') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-folder-plus me-2"></i>
+                        Create Workspace
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Search Tips -->
+    <div class="row">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-lightbulb me-2"></i>
+                        Search Tips
+                    </h5>
+                    <ul class="mb-0">
+                        <li>Search for page titles, content, or workspace names</li>
+                        <li>Use specific keywords for better results</li>
+                        <li>Search is case-insensitive</li>
+                        <li>Results are ordered by most recent activity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Focus search input
+    const searchInput = document.querySelector('input[name="query"]');
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+
+    // Add fade-in animation to search results
+    const searchResults = document.querySelectorAll('.search-result, .page-item');
+    searchResults.forEach((result, index) => {
+        setTimeout(() => {
+            result.classList.add('fade-in');
+        }, index * 50);
+    });
+});
+</script>
+{% endblock %}

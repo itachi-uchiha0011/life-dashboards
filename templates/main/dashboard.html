@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">Welcome back, {{ current_user.username }}! 👋</h1>
+                    <p class="text-muted mb-0">Ready to organize your thoughts and ideas?</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('categories.create_category') }}" class="btn btn-primary">
+                        <i class="bi bi-folder-plus me-2"></i>
+                        New Category
+                    </a>
+                    <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+                        <i class="bi bi-plus-lg me-2"></i>
+                        Quick Add
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories Section -->
+    <div class="row mb-5">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0">
+                    <i class="bi bi-folder me-2"></i>
+                    Your Workspaces
+                </h3>
+                {% if categories|length > 0 %}
+                <span class="badge bg-secondary">{{ categories|length }} workspace{{ 's' if categories|length != 1 else '' }}</span>
+                {% endif %}
+            </div>
+
+            {% if categories %}
+            <div class="row g-3">
+                {% for category in categories %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="category-card d-block p-3 h-100">
+                        <div class="category-icon" style="background-color: {{ category.color }}20; color: {{ category.color }};">
+                            {{ category.icon }}
+                        </div>
+                        <h5 class="mb-2">{{ category.title }}</h5>
+                        {% if category.description %}
+                        <p class="text-muted small mb-2 text-truncate-2">{{ category.description }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center small text-muted">
+                            <span>
+                                <i class="bi bi-file-text me-1"></i>
+                                {{ category.pages|length }} page{{ 's' if category.pages|length != 1 else '' }}
+                            </span>
+                            <span>{{ category.updated_at.strftime('%b %d') }}</span>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+                
+                <!-- Add New Category Card -->
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="{{ url_for('categories.create_category') }}" class="category-card d-block p-3 h-100 text-center border-2 border-dashed">
+                        <div class="category-icon mx-auto" style="background-color: var(--bs-secondary-bg);">
+                            <i class="bi bi-plus-lg text-muted"></i>
+                        </div>
+                        <h5 class="mb-2 text-muted">New Workspace</h5>
+                        <p class="text-muted small mb-0">Create a new category to organize your pages</p>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <i class="bi bi-folder text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 mb-2">No workspaces yet</h3>
+                <p class="text-muted mb-4">Create your first workspace to start organizing your content</p>
+                <a href="{{ url_for('categories.create_category') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-folder-plus me-2"></i>
+                    Create Your First Workspace
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Pages Section -->
+    {% if recent_pages %}
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="mb-3">
+                <i class="bi bi-clock-history me-2"></i>
+                Recently Updated
+            </h3>
+            <div class="page-list">
+                {% for page in recent_pages %}
+                <a href="{{ url_for('categories.view_page', category_slug=page.category.slug, page_slug=page.slug) }}" class="page-item">
+                    <div class="d-flex align-items-center">
+                        <span class="page-icon">{{ page.icon }}</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ page.title }}</div>
+                            <div class="page-meta">
+                                in {{ page.category.title }} • {{ page.updated_at.strftime('%b %d, %Y at %I:%M %p') }}
+                            </div>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-folder text-primary fs-2"></i>
+                    <h4 class="mt-2 mb-1">{{ categories|length }}</h4>
+                    <p class="text-muted small mb-0">Workspace{{ 's' if categories|length != 1 else '' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-file-text text-success fs-2"></i>
+                    <h4 class="mt-2 mb-1">{{ current_user.pages.filter_by(is_deleted=False).count() }}</h4>
+                    <p class="text-muted small mb-0">Total Page{{ 's' if current_user.pages.filter_by(is_deleted=False).count() != 1 else '' }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-calendar3 text-warning fs-2"></i>
+                    <h4 class="mt-2 mb-1">{{ current_user.created_at.strftime('%b %Y') }}</h4>
+                    <p class="text-muted small mb-0">Member Since</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-trash text-danger fs-2"></i>
+                    <h4 class="mt-2 mb-1">{{ current_user.pages.filter_by(is_deleted=True).count() + current_user.categories.filter_by(is_deleted=True).count() }}</h4>
+                    <p class="text-muted small mb-0">In Trash</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Button for Mobile -->
+<button class="btn btn-primary btn-floating d-lg-none" data-bs-toggle="modal" data-bs-target="#quickAddModal">
+    <i class="bi bi-plus-lg"></i>
+</button>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add fade-in animation to category cards
+    const categoryCards = document.querySelectorAll('.category-card');
+    categoryCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in');
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

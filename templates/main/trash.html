@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Trash Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-trash me-2"></i>
+                        Trash
+                    </h1>
+                    <p class="text-muted mb-0">Items you've deleted. They'll be permanently removed after 30 days.</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deleted Categories -->
+    {% if deleted_categories %}
+    <div class="row mb-5">
+        <div class="col">
+            <h3 class="mb-3">
+                <i class="bi bi-folder me-2"></i>
+                Deleted Workspaces ({{ deleted_categories|length }})
+            </h3>
+            <div class="page-list">
+                {% for category in deleted_categories %}
+                <div class="page-item">
+                    <div class="d-flex align-items-center">
+                        <div class="category-icon me-3" style="background-color: {{ category.color }}20; color: {{ category.color }};">
+                            {{ category.icon }}
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ category.title }}</div>
+                            <div class="page-meta">
+                                Deleted {{ category.deleted_at.strftime('%b %d, %Y at %I:%M %p') }} • 
+                                {{ category.pages|length }} page{{ 's' if category.pages|length != 1 else '' }}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ url_for('main.restore_item', item_type='category', item_id=category.id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Restore
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('main.permanent_delete', item_type='category', item_id=category.id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirmDelete('This will permanently delete this workspace and all its pages. This cannot be undone.')">
+                                    <i class="bi bi-trash me-1"></i>
+                                    Delete Forever
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Deleted Pages -->
+    {% if deleted_pages %}
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="mb-3">
+                <i class="bi bi-file-text me-2"></i>
+                Deleted Pages ({{ deleted_pages|length }})
+            </h3>
+            <div class="page-list">
+                {% for page in deleted_pages %}
+                <div class="page-item">
+                    <div class="d-flex align-items-center">
+                        <span class="page-icon">{{ page.icon }}</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-medium">{{ page.title }}</div>
+                            <div class="page-meta">
+                                from {{ page.category.icon }} {{ page.category.title }} • 
+                                Deleted {{ page.deleted_at.strftime('%b %d, %Y at %I:%M %p') }}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ url_for('main.restore_item', item_type='page', item_id=page.id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                    Restore
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('main.permanent_delete', item_type='page', item_id=page.id) }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirmDelete('This will permanently delete this page. This cannot be undone.')">
+                                    <i class="bi bi-trash me-1"></i>
+                                    Delete Forever
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not deleted_categories and not deleted_pages %}
+    <div class="row">
+        <div class="col">
+            <div class="text-center py-5">
+                <i class="bi bi-trash text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 mb-2">Trash is empty</h3>
+                <p class="text-muted mb-4">Items you delete will appear here</p>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add fade-in animation to trash items
+    const trashItems = document.querySelectorAll('.page-item');
+    trashItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.classList.add('fade-in');
+        }, index * 50);
+    });
+});
+</script>
+{% endblock %}
