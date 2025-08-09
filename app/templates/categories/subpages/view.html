@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>{{ subpage.title }}</h3>
+<form method="post">
+  <div class="mb-2">
+    <label class="form-label">Title</label>
+    <input class="form-control" name="title" value="{{ subpage.title }}" required>
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Content</label>
+    <div id="sp-editor" class="quill-editor" style="height: 300px;">{{ subpage.content | safe }}</div>
+    <input type="hidden" name="content" id="sp-content">
+  </div>
+  <button class="btn btn-primary" onclick="syncQuill('sp-editor','sp-content')">Save</button>
+</form>
+
+<hr>
+<h5>Files</h5>
+<form method="post" action="{{ url_for('categories.upload_to_subpage', subpage_id=subpage.id) }}" enctype="multipart/form-data">
+  <input type="file" name="file" class="form-control" required>
+  <button class="btn btn-secondary mt-2">Upload</button>
+</form>
+<ul class="list-group mt-3">
+  {% for f in subpage.files %}
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ f.filename }}</span>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('files.download_file', file_id=f.id) }}">Download</a>
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

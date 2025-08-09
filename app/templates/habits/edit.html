@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Edit Habit</h3>
+<form method="post">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="name" value="{{ habit.name }}" required>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Frequency</label>
+      <select class="form-select" name="frequency">
+        <option value="daily" {% if habit.frequency=='daily' %}selected{% endif %}>Daily</option>
+        <option value="weekly" {% if habit.frequency=='weekly' %}selected{% endif %}>Weekly</option>
+        <option value="custom" {% if habit.frequency=='custom' %}selected{% endif %}>Custom Days</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Custom Days (0-6 comma)</label>
+      <input class="form-control" name="custom_days" value="{{ habit.custom_days or '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Category</label>
+      <select class="form-select" name="category">
+        <option value="" {% if not habit.category %}selected{% endif %}>-</option>
+        <option {% if habit.category=='Trading' %}selected{% endif %}>Trading</option>
+        <option {% if habit.category=='Learning' %}selected{% endif %}>Learning</option>
+        <option {% if habit.category=='Fitness' %}selected{% endif %}>Fitness</option>
+        <option {% if habit.category=='Personal' %}selected{% endif %}>Personal</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Color</label>
+      <input type="color" class="form-control form-control-color" name="color" value="{{ habit.color or '#0d6efd' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Icon (emoji)</label>
+      <input class="form-control" name="icon" value="{{ habit.icon or '' }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Start Date</label>
+      <input type="date" class="form-control" name="start_date" value="{{ habit.start_date }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">End Date</label>
+      <input type="date" class="form-control" name="end_date" value="{{ habit.end_date }}">
+    </div>
+  </div>
+  <button class="btn btn-primary mt-3">Save</button>
+</form>
+{% endblock %}

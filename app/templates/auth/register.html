@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-4">
+    <h3>Register</h3>
+    <form method="post">
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input name="email" type="email" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input name="password" type="password" class="form-control" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Create account</button>
+      <a class="btn btn-link" href="{{ url_for('auth.login') }}">Login</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

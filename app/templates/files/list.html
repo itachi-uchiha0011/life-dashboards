@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Files</h3>
+<table class="table mt-3">
+  <thead><tr><th>Name</th><th>Type</th><th>Added</th><th></th></tr></thead>
+  <tbody>
+    {% for f in files %}
+      <tr>
+        <td>{{ f.filename }}</td>
+        <td>{{ f.mimetype }}</td>
+        <td>{{ f.created_at }}</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('files.download_file', file_id=f.id) }}">Download</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

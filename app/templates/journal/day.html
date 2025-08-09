@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Journal: {{ entry.entry_date }}</h3>
+<form method="post">
+  <div class="mb-2">
+    <label class="form-label">Title</label>
+    <input class="form-control" name="title" value="{{ entry.title or '' }}">
+  </div>
+  <div class="mb-2">
+    <label class="form-label">Content</label>
+    <div id="editor" class="quill-editor" style="height: 300px;">{{ entry.content | safe }}</div>
+    <input type="hidden" name="content" id="editor-content">
+  </div>
+  <button class="btn btn-primary" onclick="syncQuill('editor','editor-content')">Save</button>
+</form>
+{% endblock %}

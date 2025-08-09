@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-3">Dashboard</h3>
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Today's Habits ({{ today }})</div>
+      <div class="card-body">
+        {% if habits|length == 0 %}
+          <p>No habits yet. <a href="{{ url_for('habits.create_habit') }}">Create one</a>.</p>
+        {% else %}
+          <ul class="list-group">
+            {% for h in habits %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  {% if h.icon %}<span class="me-1">{{ h.icon }}</span>{% endif %}
+                  <span class="badge me-2" style="background-color: {{ h.color }}">&nbsp;</span>
+                  {{ h.name }}
+                </span>
+                <form method="post" action="{{ url_for('habits.toggle_today', habit_id=h.id) }}">
+                  <button class="btn btn-sm {{ 'btn-success' if logs_map.get(h.id) else 'btn-outline-secondary' }}" type="submit">
+                    {{ 'Done' if logs_map.get(h.id) else 'Mark' }}
+                  </button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">Top 4 Things To Do</div>
+          <div class="card-body" id="todo-list" data-kind="todo">
+            {% for t in todos %}
+              <div class="form-check">
+                <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+              </div>
+            {% endfor %}
+            <div class="input-group mt-2">
+              <input id="todo-input" type="text" class="form-control" placeholder="Add task">
+              <button class="btn btn-outline-primary add-todo">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">Top 4 Things NOT To Do</div>
+          <div class="card-body" id="not-todo-list" data-kind="not_todo">
+            {% for t in not_todos %}
+              <div class="form-check">
+                <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+              </div>
+            {% endfor %}
+            <div class="input-group mt-2">
+              <input id="not-todo-input" type="text" class="form-control" placeholder="Add anti-task">
+              <button class="btn btn-outline-danger add-todo">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">Journal Heatmap</div>
+      <div class="card-body">
+        <canvas id="heatmap" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">What I Learnt Today</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
+          <input type="hidden" name="title" value="What I Learnt Today">
+          <div id="learn-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='What I Learnt Today' else '') | safe }}</div>
+          <input type="hidden" name="content" id="learn-content">
+          <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('learn-editor','learn-content')">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Mistakes I Made Today</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
+          <input type="hidden" name="title" value="Mistakes I Made Today">
+          <div id="mistakes-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='Mistakes I Made Today' else '') | safe }}</div>
+          <input type="hidden" name="content" id="mistakes-content">
+          <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('mistakes-editor','mistakes-content')">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

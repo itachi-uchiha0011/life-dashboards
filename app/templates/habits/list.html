@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+  <h3>Habits</h3>
+  <a class="btn btn-primary" href="{{ url_for('habits.create_habit') }}">Add Habit</a>
+</div>
+<table class="table mt-3">
+  <thead><tr><th>Name</th><th>Frequency</th><th>Category</th><th></th></tr></thead>
+  <tbody>
+    {% for h in habits %}
+      <tr>
+        <td><span class="badge me-1" style="background-color: {{ h.color }}">&nbsp;</span>{{ h.name }}</td>
+        <td>{{ h.frequency }}</td>
+        <td>{{ h.category or '' }}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('habits.edit_habit', habit_id=h.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('habits.delete_habit', habit_id=h.id) }}" style="display:inline" onsubmit="return confirm('Delete?')">
+            <button class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
