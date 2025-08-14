@@ -1,19 +1,42 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center">
-  <h3>Journal</h3>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+  <h3 class="mb-0">Journal</h3>
   <a class="btn btn-primary" href="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">Today</a>
 </div>
-<table class="table mt-3">
-  <thead><tr><th>Date</th><th>Title</th><th></th></tr></thead>
-  <tbody>
-    {% for e in entries %}
-      <tr>
-        <td>{{ e.entry_date }}</td>
-        <td>{{ e.title }}</td>
-        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('journal.journal_day', entry_date=e.entry_date.isoformat()) }}">Open</a></td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Activity Heatmap (last 12 months)</span>
+    <small class="text-muted">Click a day to open</small>
+  </div>
+  <div class="card-body" style="height:200px">
+    <canvas id="heatmap"></canvas>
+  </div>
+</div>
+
+<h5 class="mt-4">All Entries</h5>
+<div class="table-responsive">
+  <table class="table align-middle">
+    <thead><tr><th>Date</th><th>Title</th><th></th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+        <tr>
+          <td class="text-nowrap">{{ e.entry_date }}</td>
+          <td>{{ e.title }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('journal.journal_day', entry_date=e.entry_date.isoformat()) }}">Open</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="d-flex justify-content-between">
+  {% if page > 1 %}
+    <a class="btn btn-outline-secondary" href="{{ url_for('journal.journal_index', page=page-1) }}">Previous</a>
+  {% else %}
+    <span></span>
+  {% endif %}
+  {% if entries|length == 100 %}
+    <a class="btn btn-outline-secondary" href="{{ url_for('journal.journal_index', page=page+1) }}">Next</a>
+  {% endif %}
+</div>
 {% endblock %}

@@ -1,2 +1,6 @@
 body { }
 .badge { vertical-align: middle; }
+.card { border-radius: .75rem; }
+.card-header { font-weight: 600; }
+.table th { font-weight: 600; }
+.alert { border-radius: .5rem; }

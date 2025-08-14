@@ -14,7 +14,10 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    username = db.Column(db.String(80), unique=True, nullable=True, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
+    avatar_url = db.Column(db.String(500), nullable=True)
+    timezone = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     habits = db.relationship("Habit", backref="user", lazy=True, cascade="all, delete-orphan")

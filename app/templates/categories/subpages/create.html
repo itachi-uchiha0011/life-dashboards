@@ -2,6 +2,7 @@
 {% block content %}
 <h3>New Subpage in {{ category.name }}</h3>
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="mb-2">
     <label class="form-label">Title</label>
     <input class="form-control" name="title" required>

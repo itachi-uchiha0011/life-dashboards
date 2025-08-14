@@ -5,16 +5,24 @@
   <a class="btn btn-primary" href="{{ url_for('habits.create_habit') }}">Add Habit</a>
 </div>
 <table class="table mt-3">
-  <thead><tr><th>Name</th><th>Frequency</th><th>Category</th><th></th></tr></thead>
+  <thead><tr><th>Name</th><th>Frequency</th><th>Category</th><th>Reminder</th><th></th></tr></thead>
   <tbody>
     {% for h in habits %}
       <tr>
         <td><span class="badge me-1" style="background-color: {{ h.color }}">&nbsp;</span>{{ h.name }}</td>
         <td>{{ h.frequency }}</td>
         <td>{{ h.category or '' }}</td>
+        <td>
+          {% if h.reminders %}
+            <span class="text-muted small">{{ h.reminders[0].when_time }} {% if h.reminders[0].weekdays %}(days: {{ h.reminders[0].weekdays }}){% endif %}</span>
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
         <td class="text-end">
           <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('habits.edit_habit', habit_id=h.id) }}">Edit</a>
           <form method="post" action="{{ url_for('habits.delete_habit', habit_id=h.id) }}" style="display:inline" onsubmit="return confirm('Delete?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-sm btn-outline-danger">Delete</button>
           </form>
         </td>

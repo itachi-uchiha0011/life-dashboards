@@ -40,7 +40,7 @@
         values.push({x: week, y: dow, v: days[key] || 0, date: key});
       }
       const weeks = [...new Set(values.map(v=>v.x))];
-      new Chart(heatmapCanvas, {
+      const chart = new Chart(heatmapCanvas, {
         type: 'matrix',
         data: {
           datasets: [{
@@ -61,7 +61,16 @@
             x: { type: 'linear', ticks: { callback: ()=>'' } },
             y: { type: 'linear', ticks: { callback: v => ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][v] } }
           },
-          plugins: { tooltip: { callbacks: { label: (ctx)=> `${ctx.raw.date}: ${ctx.raw.v}` } } }
+          plugins: { tooltip: { callbacks: { label: (ctx)=> `${ctx.raw.date}: ${ctx.raw.v}` } } },
+          onClick: (evt) => {
+            const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+            if (points.length){
+              const raw = chart.data.datasets[points[0].datasetIndex].data[points[0].index];
+              if (raw && raw.date){
+                window.location.href = `/journal/day/${raw.date}`;
+              }
+            }
+          }
         }
       });
     });
@@ -82,13 +91,15 @@
       const input = wrapper.querySelector('input[type=text]');
       const kind = wrapper.getAttribute('data-kind');
       const label = input.value.trim(); if (!label) return;
-      fetch('/api/todos', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({label, kind})})
+      const csrf = document.querySelector('meta[name=csrf-token]')?.content || '';
+      fetch('/api/todos', {method:'POST', headers:{'Content-Type':'application/json','X-CSRFToken': csrf}, body: JSON.stringify({label, kind})})
         .then(()=> location.reload());
     });
   });
   document.querySelectorAll('.todo-toggle').forEach(chk=>{
     chk.addEventListener('change', ()=>{
-      fetch(`/api/todos/${chk.dataset.id}/toggle`, {method:'POST'})
+      const csrf = document.querySelector('meta[name=csrf-token]')?.content || '';
+      fetch(`/api/todos/${chk.dataset.id}/toggle`, {method:'POST', headers:{'X-CSRFToken': csrf}})
         .then(()=> location.reload());
     });
   });

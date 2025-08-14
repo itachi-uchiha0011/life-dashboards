@@ -2,6 +2,7 @@
 {% block content %}
 <h3>Edit Habit</h3>
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row g-3">
     <div class="col-md-6">
       <label class="form-label">Name</label>
@@ -16,7 +17,7 @@
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Custom Days (0-6 comma)</label>
+      <label class="form-label">Custom Days (0=Sun..6=Sat)</label>
       <input class="form-control" name="custom_days" value="{{ habit.custom_days or '' }}">
     </div>
     <div class="col-md-3">
@@ -44,6 +45,14 @@
     <div class="col-md-3">
       <label class="form-label">End Date</label>
       <input type="date" class="form-control" name="end_date" value="{{ habit.end_date }}">
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Reminder Time (optional)</label>
+      <input type="time" class="form-control" name="reminder_time" value="{{ habit.reminders[0].when_time if habit.reminders and habit.reminders[0].when_time }}">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label">Reminder Weekdays (comma 0=Sun..6=Sat)</label>
+      <input class="form-control" name="reminder_weekdays" value="{{ habit.reminders[0].weekdays if habit.reminders }}">
     </div>
   </div>
   <button class="btn btn-primary mt-3">Save</button>

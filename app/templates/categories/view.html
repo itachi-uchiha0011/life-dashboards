@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center">
-  <h3>Category: {{ category.name }}</h3>
-  <a class="btn btn-primary" href="{{ url_for('categories.create_subpage', category_id=category.id) }}">Add Subpage</a>
+<h3>{{ category.name }}</h3>
+<div class="mb-3">
+  <a class="btn btn-primary" href="{{ url_for('categories.create_subpage', category_id=category.id) }}">New Subpage</a>
 </div>
-<ul class="list-group mt-3">
+<ul class="list-group">
   {% for sp in category.subpages %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
       <a href="{{ url_for('categories.view_subpage', subpage_id=sp.id) }}">{{ sp.title }}</a>
-      <small class="text-muted">{{ sp.updated_at }}</small>
+      <span class="text-muted small">Updated {{ sp.updated_at }}</span>
     </li>
   {% endfor %}
 </ul>

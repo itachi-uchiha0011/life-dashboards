@@ -18,6 +18,7 @@
                   {{ h.name }}
                 </span>
                 <form method="post" action="{{ url_for('habits.toggle_today', habit_id=h.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button class="btn btn-sm {{ 'btn-success' if logs_map.get(h.id) else 'btn-outline-secondary' }}" type="submit">
                     {{ 'Done' if logs_map.get(h.id) else 'Mark' }}
                   </button>
@@ -83,6 +84,7 @@
       <div class="card-header">What I Learnt Today</div>
       <div class="card-body">
         <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="title" value="What I Learnt Today">
           <div id="learn-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='What I Learnt Today' else '') | safe }}</div>
           <input type="hidden" name="content" id="learn-content">
@@ -97,6 +99,7 @@
       <div class="card-header">Mistakes I Made Today</div>
       <div class="card-body">
         <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="title" value="Mistakes I Made Today">
           <div id="mistakes-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='Mistakes I Made Today' else '') | safe }}</div>
           <input type="hidden" name="content" id="mistakes-content">

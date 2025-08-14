@@ -1,12 +1,16 @@
 from flask import Flask
 from .config import Config
-from .extensions import db, migrate, login_manager, scheduler
+from .extensions import db, migrate, login_manager, scheduler, csrf
 from .models import User
 
 
 def create_app(config_class: type[Config] | None = None) -> Flask:
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config.from_object(config_class or Config)
+
+    # Enable CSRF
+    app.config.setdefault("WTF_CSRF_TIME_LIMIT", None)
+    csrf.init_app(app)
 
     # Init extensions
     db.init_app(app)

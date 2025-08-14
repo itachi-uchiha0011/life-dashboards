@@ -2,6 +2,7 @@
 {% block content %}
 <h3>{{ subpage.title }}</h3>
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="mb-2">
     <label class="form-label">Title</label>
     <input class="form-control" name="title" value="{{ subpage.title }}" required>
@@ -17,6 +18,7 @@
 <hr>
 <h5>Files</h5>
 <form method="post" action="{{ url_for('categories.upload_to_subpage', subpage_id=subpage.id) }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="file" name="file" class="form-control" required>
   <button class="btn btn-secondary mt-2">Upload</button>
 </form>

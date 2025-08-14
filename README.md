@@ -1,35 +1,49 @@
-# Life Dashboard
+# Life Dashboard (Flask)
 
-Full-stack Flask app: user auth, habits, journal with heatmap, categories/subpages with rich text and file uploads, reminders, and exports.
+A minimal life dashboard with habits, journal (with heatmap), categories/subpages and files. Built with Flask 3, Bootstrap 5, Quill, Chart.js Matrix, SQLAlchemy, APScheduler.
 
-## Quickstart
+## Features
+- Habits with daily toggle and optional reminder (email/Telegram via scheduler)
+- Journal with rich text and a 12‑month activity heatmap; click a date to open the entry
+- Categories and subpages with file uploads
+- CSRF protection enabled (Flask‑WTF)
 
-1. Create and fill `.env` from `.env.example`.
-2. Install deps:
-
+## Run locally
+1. Create `.env` with at least:
 ```
+SECRET_KEY=dev-secret
+DATABASE_URL=sqlite:///app.db
+```
+2. Install and run:
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -U pip
 pip install -r requirements.txt
+flask --app app run --debug
 ```
 
-3. Initialize DB:
-
+## Database migrations
 ```
-flask db init
-flask db migrate -m "init"
-flask db upgrade
+flask --app app db upgrade
 ```
 
-4. Run:
+## Deployment (free options)
+- Render Free Web Service:
+  - Build command: `pip install -r requirements.txt && flask --app app db upgrade`
+  - Start command: `gunicorn wsgi:app`
+  - Environment: set `DATABASE_URL` (Render PostgreSQL), `SECRET_KEY`, optional `MAIL_*`, `TELEGRAM_*`.
+- Railway:
+  - Add Python plugin. Start command: `gunicorn wsgi:app`. Add a PostgreSQL plugin and set `DATABASE_URL`.
+- Fly.io/Zeet: similar; ensure port 8080/5000 mapping and use `gunicorn wsgi:app`.
 
-```
-flask run --host 0.0.0.0 --port 5000
-```
+CSRF is enabled globally. Forms include `{{ csrf_token() }}` and JS sends header `X-CSRFToken` from a meta tag.
 
-Open http://localhost:5000
+## Environment variables
+- SECRET_KEY: Flask secret
+- DATABASE_URL: e.g. `postgresql://user:pass@host:5432/db` (auto-normalized to psycopg URL)
+- MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER
+- TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
-## Notes
-- Default DB is SQLite. Set `DATABASE_URL` for Postgres.
-- Uploads go to `UPLOAD_FOLDER`.
-- Heatmap uses Chart.js Matrix plugin.
-- Rich text uses Quill; content is stored as HTML.
-- Reminders use APScheduler. Configure email/Telegram in `.env`.
+## Supabase
+If using Supabase Postgres, use the provided connection string for `DATABASE_URL`. Run migrations via `flask db upgrade` with the connection string set.

@@ -3,7 +3,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..models import Habit, HabitLog
+from ..models import Habit, HabitLog, Reminder
 from . import habits_bp
 
 
@@ -26,6 +26,8 @@ def create_habit():
         icon = request.form.get("icon") or None
         sd = request.form.get("start_date") or None
         ed = request.form.get("end_date") or None
+        reminder_time = request.form.get("reminder_time") or None
+        reminder_weekdays = request.form.get("reminder_weekdays") or None
         start_date = datetime.strptime(sd, "%Y-%m-%d").date() if sd else None
         end_date = datetime.strptime(ed, "%Y-%m-%d").date() if ed else None
         habit = Habit(
@@ -40,6 +42,11 @@ def create_habit():
             end_date=end_date,
         )
         db.session.add(habit)
+        db.session.flush()
+        if reminder_time:
+            when_t = datetime.strptime(reminder_time, "%H:%M").time()
+            rem = Reminder(user_id=current_user.id, habit_id=habit.id, channel="email", when_time=when_t, weekdays=reminder_weekdays or None)
+            db.session.add(rem)
         db.session.commit()
         flash("Habit created.", "success")
         return redirect(url_for("habits.list_habits"))
@@ -61,6 +68,21 @@ def edit_habit(habit_id: int):
         ed = request.form.get("end_date") or None
         habit.start_date = datetime.strptime(sd, "%Y-%m-%d").date() if sd else None
         habit.end_date = datetime.strptime(ed, "%Y-%m-%d").date() if ed else None
+        reminder_time = request.form.get("reminder_time") or None
+        reminder_weekdays = request.form.get("reminder_weekdays") or None
+        # Upsert single reminder for this habit
+        rem = habit.reminders[0] if habit.reminders else None
+        if reminder_time:
+            when_t = datetime.strptime(reminder_time, "%H:%M").time()
+            if rem:
+                rem.when_time = when_t
+                rem.weekdays = reminder_weekdays or None
+                rem.enabled = True
+            else:
+                rem = Reminder(user_id=current_user.id, habit_id=habit.id, channel="email", when_time=when_t, weekdays=reminder_weekdays or None)
+                db.session.add(rem)
+        elif rem:
+            rem.enabled = False
         db.session.commit()
         flash("Habit updated.", "success")
         return redirect(url_for("habits.list_habits"))

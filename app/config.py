@@ -2,31 +2,48 @@ import os
 from datetime import timedelta
 
 
+def _normalize_database_url(url: str) -> str:
+	if not url:
+		return url
+	# Handle postgres:// -> postgresql+psycopg:// and postgresql:// -> postgresql+psycopg://
+	if url.startswith("postgres://"):
+		return url.replace("postgres://", "postgresql+psycopg://", 1)
+	if url.startswith("postgresql://") and "+" not in url:
+		return url.replace("postgresql://", "postgresql+psycopg://", 1)
+	return url
+
+
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///app.db")
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+	SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
+	SQLALCHEMY_DATABASE_URI = _normalize_database_url(os.getenv("DATABASE_URL", "sqlite:///app.db"))
+	SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Uploads
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(os.getcwd(), "uploads"))
-    MAX_CONTENT_LENGTH = 25 * 1024 * 1024  # 25MB
-    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf", "doc", "docx", "ppt", "pptx", "txt"}
+	# Uploads (local fallback, avoid for prod)
+	UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", os.path.join(os.getcwd(), "uploads"))
+	MAX_CONTENT_LENGTH = 25 * 1024 * 1024  # 25MB
+	ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "pdf", "doc", "docx", "ppt", "pptx", "txt"}
 
-    # Auth
-    REMEMBER_COOKIE_DURATION = timedelta(days=30)
+	# Supabase Storage
+	SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+	SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY", "")
+	SUPABASE_FILES_BUCKET = os.getenv("SUPABASE_FILES_BUCKET", "files")
+	SUPABASE_AVATARS_BUCKET = os.getenv("SUPABASE_AVATARS_BUCKET", "avatars")
 
-    # Email
-    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
-    MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
-    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
-    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
-    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
-    MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
+	# Auth
+	REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
-    # Telegram
-    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-    TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+	# Email
+	MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+	MAIL_PORT = int(os.getenv("MAIL_PORT", "587"))
+	MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
+	MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
+	MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
+	MAIL_DEFAULT_SENDER = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
 
-    # Scheduler
-    SCHEDULER_API_ENABLED = False
-    JOBS_TIMEZONE = os.getenv("JOBS_TIMEZONE", "UTC")
+	# Telegram
+	TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+	TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+
+	# Scheduler
+	SCHEDULER_API_ENABLED = False
+	JOBS_TIMEZONE = os.getenv("JOBS_TIMEZONE", "UTC")
