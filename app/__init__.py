@@ -26,6 +26,7 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     from .files.routes import files_bp
     from .exports.routes import exports_bp
     from .api.routes import api_bp
+    from .tasks.routes import tasks_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -35,6 +36,7 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(files_bp)
     app.register_blueprint(exports_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(tasks_bp)
 
     # Start scheduler
     with app.app_context():
