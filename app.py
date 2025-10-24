@@ -3,6 +3,7 @@ from flask import Flask, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 import secrets
 
@@ -10,6 +11,7 @@ import secrets
 db = SQLAlchemy()
 login_manager = LoginManager()
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app():
     app = Flask(__name__)
@@ -28,6 +30,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
     
     # Configure Flask-Login
     login_manager.login_view = 'auth.login'
@@ -46,6 +49,8 @@ def create_app():
     from routes.pages import pages_bp
     from routes.api import api_bp
     from app.drive.routes import drive_bp
+    from app.tasks.routes import tasks_bp
+    from app.dashboard.routes import dashboard_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(main_bp)
@@ -53,11 +58,17 @@ def create_app():
     app.register_blueprint(pages_bp, url_prefix='/page')
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(drive_bp)
+    app.register_blueprint(tasks_bp, url_prefix='/tasks')
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     
-    # Context processor for theme
+    # Context processor for theme and CSRF
     @app.context_processor
     def inject_theme():
-        return {'current_theme': session.get('theme', 'light')}
+        from flask_wtf.csrf import generate_csrf
+        return {
+            'current_theme': session.get('theme', 'light'),
+            'csrf_token': generate_csrf
+        }
     
     # Error handlers
     @app.errorhandler(404)

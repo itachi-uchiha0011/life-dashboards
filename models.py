@@ -5,7 +5,7 @@ from datetime import datetime
 from slugify import slugify
 import uuid
 
-from app import db
+from app.extensions import db
 
 class User(UserMixin, db.Model):
     """User model for authentication"""

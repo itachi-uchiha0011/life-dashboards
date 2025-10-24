@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from flask import Blueprint, request, jsonify, current_app, url_for
 from flask_login import login_required, current_user
 from models import Page, ContentBlock, FileUpload
-from app import db
+from app.extensions import db
 
 api_bp = Blueprint('api', __name__)
 

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Edit Category Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.dashboard') }}" class="text-decoration-none">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="text-decoration-none">
+                            {{ category.icon }} {{ category.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Edit
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit Category
+                    </h1>
+                    <p class="text-muted mb-0">Update your workspace settings</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Category
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Category Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ form.title.data or category.title }}" required>
+                            {% if form.title.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.title.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Describe what this workspace is for...">{{ form.description.data or category.description }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.description.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="icon" class="form-label">Icon</label>
+                                    <input type="text" class="form-control" id="icon" name="icon" 
+                                           value="{{ form.icon.data or category.icon }}" 
+                                           placeholder="📁" maxlength="50">
+                                    <div class="form-text">Enter an emoji or icon character</div>
+                                    {% if form.icon.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.icon.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="color" class="form-label">Color</label>
+                                    <input type="color" class="form-control form-control-color" id="color" name="color" 
+                                           value="{{ form.color.data or category.color }}">
+                                    {% if form.color.errors %}
+                                        <div class="text-danger small">
+                                            {% for error in form.color.errors %}
+                                                <div>{{ error }}</div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Update Category
+                            </button>
+                            <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Category Info
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        <span class="text-muted">{{ category.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        <span class="text-muted">{{ category.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Pages:</strong><br>
+                        <span class="text-muted">{{ category.pages|length }} page{{ 's' if category.pages|length != 1 else '' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0 text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Danger Zone
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">
+                        Deleting this category will move it to trash along with all its pages.
+                    </p>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            onclick="confirmDelete('Are you sure you want to delete this category and all its pages?') && document.getElementById('deleteForm').submit()">
+                        <i class="bi bi-trash me-1"></i>
+                        Move to Trash
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Delete Form -->
+<form id="deleteForm" method="POST" action="{{ url_for('categories.delete_category', category_slug=category.slug) }}" class="d-none">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview icon changes
+    const iconInput = document.getElementById('icon');
+    const colorInput = document.getElementById('color');
+    
+    function updatePreview() {
+        // This would update a preview if we had one
+        console.log('Icon:', iconInput.value, 'Color:', colorInput.value);
+    }
+    
+    iconInput.addEventListener('input', updatePreview);
+    colorInput.addEventListener('input', updatePreview);
+});
+</script>
+{% endblock %}

@@ -105,8 +105,17 @@
                 <a class="nav-link {% if request.endpoint == 'main.search' %}active{% endif %}" href="{{ url_for('main.search') }}">
                     <i class="bi bi-search me-2"></i> Search
                 </a>
+                <a class="nav-link {% if request.endpoint == 'tasks.calendar_view' %}active{% endif %}" href="{{ url_for('tasks.calendar_view') }}">
+                    <i class="bi bi-calendar3 me-2"></i> Calendar
+                </a>
                 <a class="nav-link {% if request.endpoint == 'main.trash' %}active{% endif %}" href="{{ url_for('main.trash') }}">
                     <i class="bi bi-trash me-2"></i> Trash
+                </a>
+                <a class="nav-link {% if request.endpoint == 'dashboard.settings' %}active{% endif %}" href="{{ url_for('dashboard.settings') }}">
+                    <i class="bi bi-gear me-2"></i> Settings
+                </a>
+                <a class="nav-link {% if request.endpoint == 'drive.list_backups' %}active{% endif %}" href="{{ url_for('drive.list_backups') }}">
+                    <i class="bi bi-cloud-upload me-2"></i> Backups
                 </a>
             </nav>
 
@@ -198,6 +207,13 @@
     
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    <!-- Global JavaScript Functions -->
+    <script>
+        function confirmDelete(message) {
+            return confirm(message || 'Are you sure you want to delete this item? This action cannot be undone.');
+        }
+    </script>
     
     {% block additional_js %}{% endblock %}
 
