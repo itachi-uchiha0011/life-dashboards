@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy import or_, and_
 from forms import SearchForm, QuickAddForm, CategoryForm
 from models import User, Category, Page, ContentBlock
-from app import db
+from app.extensions import db
 
 main_bp = Blueprint('main', __name__)
 

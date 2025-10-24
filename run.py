@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # Create database tables
     with app.app_context():
         try:
-            from app import db
+            from app.extensions import db
             db.create_all()
             print("✓ Database tables created successfully!")
         except Exception as e:

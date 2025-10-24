@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_required, current_user
 from forms import CategoryForm, PageForm
 from models import Category, Page
-from app import db
+from app.extensions import db
 
 categories_bp = Blueprint('categories', __name__)
 
