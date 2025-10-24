@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Edit Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('main.dashboard') }}" class="text-decoration-none">
+                            <i class="bi bi-house"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" class="text-decoration-none">
+                            {{ category.icon }} {{ category.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="{{ url_for('categories.view_page', category_slug=category.slug, page_slug=page.slug) }}" class="text-decoration-none">
+                            {{ page.icon }} {{ page.title }}
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        Edit
+                    </li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="bi bi-pencil me-2"></i>
+                        Edit Page
+                    </h1>
+                    <p class="text-muted mb-0">Update your page settings</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('categories.view_page', category_slug=category.slug, page_slug=page.slug) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>
+                        Back to Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Page Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ form.title.data or page.title }}" required>
+                            {% if form.title.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.title.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="icon" class="form-label">Icon</label>
+                            <input type="text" class="form-control" id="icon" name="icon" 
+                                   value="{{ form.icon.data or page.icon }}" 
+                                   placeholder="📄" maxlength="50">
+                            <div class="form-text">Enter an emoji or icon character</div>
+                            {% if form.icon.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.icon.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Category *</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                {% for cat_id, cat_title in form.category_id.choices %}
+                                    <option value="{{ cat_id }}" {% if cat_id == (form.category_id.data or page.category_id) %}selected{% endif %}>
+                                        {{ cat_title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.category_id.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.category_id.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="parent_id" class="form-label">Parent Page</label>
+                            <select class="form-select" id="parent_id" name="parent_id">
+                                {% for parent_id, parent_title in form.parent_id.choices %}
+                                    <option value="{{ parent_id }}" {% if parent_id == (form.parent_id.data or page.parent_id) %}selected{% endif %}>
+                                        {{ parent_title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Make this a subpage of another page (optional)</div>
+                            {% if form.parent_id.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.parent_id.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="template_type" class="form-label">Template Type</label>
+                            <select class="form-select" id="template_type" name="template_type">
+                                {% for template_id, template_name in form.template_type.choices %}
+                                    <option value="{{ template_id }}" {% if template_id == (form.template_type.data or page.template_type) %}selected{% endif %}>
+                                        {{ template_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Choose a template to get started quickly (optional)</div>
+                            {% if form.template_type.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.template_type.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-2"></i>
+                                Update Page
+                            </button>
+                            <a href="{{ url_for('categories.view_page', category_slug=category.slug, page_slug=page.slug) }}" class="btn btn-outline-secondary">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Page Info
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Created:</strong><br>
+                        <span class="text-muted">{{ page.created_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Last Updated:</strong><br>
+                        <span class="text-muted">{{ page.updated_at.strftime('%B %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Content Blocks:</strong><br>
+                        <span class="text-muted">{{ page.content_blocks|length }} block{{ 's' if page.content_blocks|length != 1 else '' }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Attachments:</strong><br>
+                        <span class="text-muted">{{ page.file_uploads|length }} file{{ 's' if page.file_uploads|length != 1 else '' }}</span>
+                    </div>
+                    {% if page.children %}
+                    <div class="mb-3">
+                        <strong>Subpages:</strong><br>
+                        <span class="text-muted">{{ page.children|length }} subpage{{ 's' if page.children|length != 1 else '' }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0 text-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Danger Zone
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">
+                        Deleting this page will move it to trash along with all its content and subpages.
+                    </p>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            onclick="confirmDelete('Are you sure you want to delete this page and all its content?') && document.getElementById('deleteForm').submit()">
+                        <i class="bi bi-trash me-1"></i>
+                        Move to Trash
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden Delete Form -->
+<form id="deleteForm" method="POST" action="{{ url_for('categories.delete_page', category_slug=category.slug, page_slug=page.slug) }}" class="d-none">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview icon changes
+    const iconInput = document.getElementById('icon');
+    
+    function updatePreview() {
+        // This would update a preview if we had one
+        console.log('Icon:', iconInput.value);
+    }
+    
+    iconInput.addEventListener('input', updatePreview);
+    
+    // Handle category change to update parent page options
+    const categorySelect = document.getElementById('category_id');
+    const parentSelect = document.getElementById('parent_id');
+    
+    categorySelect.addEventListener('change', function() {
+        // In a real implementation, this would fetch available parent pages
+        // for the selected category via AJAX
+        console.log('Category changed to:', this.value);
+    });
+});
+</script>
+{% endblock %}

@@ -212,7 +212,7 @@
 
 <!-- Hidden Delete Form -->
 <form id="deleteForm" method="POST" action="{{ url_for('categories.delete_page', category_slug=category.slug, page_slug=page.slug) }}" class="d-none">
-    {{ csrf_token() }}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 </form>
 {% endblock %}
 
