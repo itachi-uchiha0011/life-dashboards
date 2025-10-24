@@ -3,7 +3,14 @@
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <span>Journal: {{ entry.entry_date }}</span>
-    <a href="{{ url_for('journal.journal_index') }}" class="btn btn-sm btn-outline-secondary">Back</a>
+    <div>
+      {% if entry.id %}
+        <button class="btn btn-sm btn-outline-info me-2" id="backup-btn" onclick="backupEntry({{ entry.id }})">
+          <i class="fas fa-cloud-upload-alt me-1"></i>Backup to Drive
+        </button>
+      {% endif %}
+      <a href="{{ url_for('journal.journal_index') }}" class="btn btn-sm btn-outline-secondary">Back</a>
+    </div>
   </div>
   <div class="card-body">
     <form method="post">
@@ -21,4 +28,45 @@
     </form>
   </div>
 </div>
+
+<script>
+function backupEntry(entryId) {
+  const btn = document.getElementById('backup-btn');
+  const originalText = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Backing up...';
+  
+  fetch(`/journal/backup/${entryId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      btn.innerHTML = '<i class="fas fa-check me-1"></i>Backed up!';
+      btn.classList.remove('btn-outline-info');
+      btn.classList.add('btn-success');
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-info');
+        btn.disabled = false;
+      }, 2000);
+    } else {
+      alert(data.message || 'Failed to backup entry');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error backing up entry');
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  });
+}
+</script>
 {% endblock %}

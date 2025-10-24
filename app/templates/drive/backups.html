@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Google Drive Backups{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cloud-upload-alt"></i> Google Drive Backups
+                    </h4>
+                    <a href="{{ url_for('drive.settings') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-cog me-2"></i>Settings
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if backups %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>File Name</th>
+                                        <th>Backup Date</th>
+                                        <th>Last Synced</th>
+                                        <th>Size</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for backup in backups %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-{% if backup.backup_type == 'journal' %}info{% elif backup.backup_type == 'file' %}warning{% elif backup.backup_type == 'export' %}success{% else %}secondary{% endif %}">
+                                                {{ backup.backup_type.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-{% if backup.backup_type == 'journal' %}book{% elif backup.backup_type == 'file' %}file{% elif backup.backup_type == 'export' %}download{% else %}question{% endif %} me-2"></i>
+                                            {{ backup.file_name }}
+                                        </td>
+                                        <td>{{ backup.backup_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>{{ backup.last_synced.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            {% if backup.file_size %}
+                                                {{ "%.1f"|format(backup.file_size / 1024) }} KB
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{% if backup.status == 'active' %}success{% elif backup.status == 'error' %}danger{% else %}secondary{% endif %}">
+                                                {{ backup.status.title() }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No backups yet</h5>
+                            <p class="text-muted">Connect Google Drive and create your first backup to see them here.</p>
+                            <a href="{{ url_for('drive.settings') }}" class="btn btn-primary">
+                                <i class="fas fa-cog me-2"></i>Go to Settings
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

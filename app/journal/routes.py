@@ -1,9 +1,10 @@
 from datetime import date, datetime
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 
 from ..extensions import db
 from ..models import JournalEntry
+from ..services.google_drive import GoogleDriveService
 from . import journal_bp
 
 
@@ -44,3 +45,23 @@ def journal_day(entry_date: str):
 	if not entry:
 		entry = JournalEntry(user_id=current_user.id, entry_date=d, title="", content="")
 	return render_template("journal/day.html", entry=entry)
+
+
+@journal_bp.route("/backup/<int:entry_id>", methods=["POST"])
+@login_required
+def backup_entry(entry_id: int):
+	"""Backup a journal entry to Google Drive"""
+	entry = JournalEntry.query.filter_by(id=entry_id, user_id=current_user.id).first()
+	if not entry:
+		return jsonify({"success": False, "message": "Journal entry not found"})
+	
+	drive_service = GoogleDriveService()
+	if not drive_service.is_connected(current_user.id):
+		return jsonify({"success": False, "message": "Google Drive not connected"})
+	
+	success = drive_service.backup_journal_entry(current_user.id, entry)
+	
+	if success:
+		return jsonify({"success": True, "message": "Journal entry backed up successfully"})
+	else:
+		return jsonify({"success": False, "message": "Failed to backup journal entry"})

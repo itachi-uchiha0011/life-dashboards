@@ -1,9 +1,10 @@
 from datetime import date
-from flask import render_template
+from flask import render_template, redirect, url_for
 from flask_login import login_required, current_user
 
 from ..extensions import db
 from ..models import Habit, HabitLog, TodoItem, JournalEntry
+from ..services.google_drive import GoogleDriveService
 from . import dashboard_bp
 
 
@@ -30,6 +31,10 @@ def index():
 
     today_entry = JournalEntry.query.filter_by(user_id=current_user.id, entry_date=today).first()
 
+    # Check Google Drive connection status
+    drive_service = GoogleDriveService()
+    drive_connected = drive_service.is_connected(current_user.id)
+
     return render_template(
         "dashboard/index.html",
         habits=habits,
@@ -38,4 +43,15 @@ def index():
         not_todos=not_todos,
         today_entry=today_entry,
         today=today,
+        drive_connected=drive_connected,
     )
+
+
+@dashboard_bp.route("/settings")
+@login_required
+def settings():
+    """Settings page with Google Drive integration"""
+    drive_service = GoogleDriveService()
+    drive_connected = drive_service.is_connected(current_user.id)
+    
+    return render_template("drive/settings.html", drive_connected=drive_connected)
