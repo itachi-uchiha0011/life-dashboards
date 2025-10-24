@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SelectField, HiddenField
-from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional
+from wtforms import StringField, TextAreaField, PasswordField, BooleanField, SelectField, HiddenField, IntegerField
+from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationError, Optional, NumberRange
 from models import User, Category, Page
 
 class LoginForm(FlaskForm):
@@ -107,3 +107,43 @@ class QuickAddForm(FlaskForm):
     """Quick add page form"""
     title = StringField('Page Title', validators=[DataRequired(), Length(min=1, max=200)])
     category_id = SelectField('Category', coerce=int, validators=[DataRequired()])
+
+class DailyTaskForm(FlaskForm):
+    """Daily task tracking form"""
+    # Do's points (4 items, 1 point each)
+    do_1 = BooleanField('Do Task 1')
+    do_2 = BooleanField('Do Task 2')
+    do_3 = BooleanField('Do Task 3')
+    do_4 = BooleanField('Do Task 4')
+    
+    # Don'ts points (4 items, 1 point each)
+    dont_1 = BooleanField('Don\'t Task 1')
+    dont_2 = BooleanField('Don\'t Task 2')
+    dont_3 = BooleanField('Don\'t Task 3')
+    dont_4 = BooleanField('Don\'t Task 4')
+    
+    # Journal and Learning points (1 point each)
+    journal_point = BooleanField('Journal Entry')
+    learning_point = BooleanField('Learning/Mistake Entry')
+    
+    # Text areas for content
+    journal_text = TextAreaField('What I learned today', validators=[Optional()], 
+                                render_kw={"placeholder": "Write about what you learned or accomplished today..."})
+    learning_text = TextAreaField('Mistakes and learnings', validators=[Optional()], 
+                                 render_kw={"placeholder": "Write about mistakes made and lessons learned today..."})
+    
+    def calculate_do_points(self):
+        """Calculate total do points"""
+        return sum([1 for field in [self.do_1, self.do_2, self.do_3, self.do_4] if field.data])
+    
+    def calculate_dont_points(self):
+        """Calculate total dont points"""
+        return sum([1 for field in [self.dont_1, self.dont_2, self.dont_3, self.dont_4] if field.data])
+    
+    def calculate_journal_point(self):
+        """Calculate journal point"""
+        return 1 if self.journal_point.data else 0
+    
+    def calculate_learning_point(self):
+        """Calculate learning point"""
+        return 1 if self.learning_point.data else 0
