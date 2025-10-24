@@ -153,7 +153,7 @@ class ContentBlock(db.Model):
     block_id = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     block_type = db.Column(db.String(50), nullable=False)  # 'text', 'heading', 'todo', 'image', etc.
     content = db.Column(db.Text)
-    metadata = db.Column(db.JSON)  # Store additional data like todo status, heading level, etc.
+    block_metadata = db.Column(db.JSON)  # Store additional data like todo status, heading level, etc.
     order = db.Column(db.Integer, nullable=False, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

@@ -29,14 +29,14 @@
             </button>
             
             <!-- Brand -->
-            <a class="navbar-brand" href="{{ url_for('main.dashboard') }}">
+            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
                 <i class="bi bi-journal-bookmark me-2"></i>
                 NotionClone
             </a>
             
             <!-- Search Form -->
-            <form class="d-flex me-auto" method="GET" action="{{ url_for('main.search') }}" style="max-width: 400px;">
-                <input class="form-control" type="search" name="query" placeholder="Search pages and content..." aria-label="Search" value="{{ request.args.get('query', '') }}">
+            <form class="d-flex me-auto" method="GET" action="{{ url_for('categories.list_categories') }}" style="max-width: 400px;">
+                <input class="form-control" type="search" name="query" placeholder="Search categories..." aria-label="Search" value="{{ request.args.get('query', '') }}">
                 <button class="btn btn-outline-light ms-2" type="submit">
                     <i class="bi bi-search"></i>
                 </button>
@@ -57,10 +57,10 @@
                         {{ current_user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{{ url_for('main.dashboard') }}">
+                        <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}">
                             <i class="bi bi-house me-2"></i>Dashboard
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('main.trash') }}">
+                        <li><a class="dropdown-item" href="{{ url_for('categories.trash') }}">
                             <i class="bi bi-trash me-2"></i>Trash
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -99,16 +99,16 @@
 
             <!-- Navigation Links -->
             <nav class="nav flex-column p-3">
-                <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+                <a class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
                     <i class="bi bi-house me-2"></i> Dashboard
                 </a>
-                <a class="nav-link {% if request.endpoint == 'main.search' %}active{% endif %}" href="{{ url_for('main.search') }}">
-                    <i class="bi bi-search me-2"></i> Search
+                <a class="nav-link {% if request.endpoint == 'categories.list_categories' %}active{% endif %}" href="{{ url_for('categories.list_categories') }}">
+                    <i class="bi bi-folder me-2"></i> Categories
                 </a>
                 <a class="nav-link {% if request.endpoint == 'tasks.calendar_view' %}active{% endif %}" href="{{ url_for('tasks.calendar_view') }}">
                     <i class="bi bi-calendar3 me-2"></i> Calendar
                 </a>
-                <a class="nav-link {% if request.endpoint == 'main.trash' %}active{% endif %}" href="{{ url_for('main.trash') }}">
+                <a class="nav-link {% if request.endpoint == 'categories.trash' %}active{% endif %}" href="{{ url_for('categories.trash') }}">
                     <i class="bi bi-trash me-2"></i> Trash
                 </a>
                 <a class="nav-link {% if request.endpoint == 'dashboard.settings' %}active{% endif %}" href="{{ url_for('dashboard.settings') }}">
@@ -123,10 +123,10 @@
             <div class="px-3 pb-3">
                 <h6 class="text-muted small text-uppercase mb-2">Categories</h6>
                 {% for category in current_user.categories.filter_by(is_deleted=False).all()[:10] %}
-                <a href="{{ url_for('categories.view_category', category_slug=category.slug) }}" 
+                <a href="{{ url_for('categories.view_category', category_id=category.id) }}" 
                    class="nav-link py-1 px-2 text-decoration-none d-flex align-items-center">
-                    <span class="me-2">{{ category.icon }}</span>
-                    <span class="flex-grow-1 text-truncate">{{ category.title }}</span>
+                    <span class="me-2">📁</span>
+                    <span class="flex-grow-1 text-truncate">{{ category.name }}</span>
                 </a>
                 {% endfor %}
                 
@@ -169,7 +169,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="{{ url_for('main.quick_add_page') }}">
+                <form method="POST" action="{{ url_for('categories.create_subpage') }}">
                     <div class="modal-body">
                         {{ quick_add_form.hidden_tag() if quick_add_form }}
                         <div class="mb-3">
@@ -181,7 +181,7 @@
                             <select class="form-select" id="quickAddCategory" name="category_id" required>
                                 <option value="">Select a category...</option>
                                 {% for category in current_user.categories.filter_by(is_deleted=False).all() %}
-                                <option value="{{ category.id }}">{{ category.icon }} {{ category.title }}</option>
+                                <option value="{{ category.id }}">📁 {{ category.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
