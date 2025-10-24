@@ -38,7 +38,8 @@ def index():
 
     # Check Google Drive connection status
     drive_service = GoogleDriveService()
-    drive_connected = drive_service.is_connected(current_user.id)
+    drive_connected = drive_service.is_configured and drive_service.is_connected(current_user.id)
+    drive_available = drive_service.is_configured
 
     return render_template(
         "dashboard/index.html",
@@ -49,6 +50,7 @@ def index():
         today_entry=today_entry,
         today=today,
         drive_connected=drive_connected,
+        drive_available=drive_available,
     )
 
 
@@ -57,6 +59,14 @@ def index():
 def settings():
     """Settings page with Google Drive integration"""
     drive_service = GoogleDriveService()
-    drive_connected = drive_service.is_connected(current_user.id)
+    drive_connected = drive_service.is_configured and drive_service.is_connected(current_user.id)
+    drive_available = drive_service.is_configured
     
-    return render_template("drive/settings.html", drive_connected=drive_connected)
+    if not drive_available:
+        return render_template("dashboard/settings.html", 
+                             drive_connected=drive_connected, 
+                             drive_available=drive_available)
+    
+    return render_template("drive/settings.html", 
+                         drive_connected=drive_connected, 
+                         drive_available=drive_available)

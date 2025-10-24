@@ -3,6 +3,16 @@
 {% block title %}Google Drive Settings{% endblock %}
 
 {% block content %}
+{% if not drive_available %}
+<div class="container mt-4">
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Google Drive Integration Not Available</strong><br>
+        Google Drive integration is not configured on this server. Please contact your administrator.
+    </div>
+    <a href="{{ url_for('dashboard.settings') }}" class="btn btn-secondary">Back to Settings</a>
+</div>
+{% else %}
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-8">
@@ -247,4 +257,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+{% endif %}
 {% endblock %}

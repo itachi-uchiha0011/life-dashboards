@@ -23,9 +23,13 @@ class GoogleDriveService:
         self.client_secret = Config.GOOGLE_CLIENT_SECRET
         self.redirect_uri = Config.GOOGLE_REDIRECT_URI
         self.scopes = Config.GOOGLE_DRIVE_SCOPES
+        self.is_configured = bool(self.client_id and self.client_secret)
     
     def get_authorization_url(self) -> str:
         """Get Google OAuth authorization URL"""
+        if not self.is_configured:
+            raise ValueError("Google Drive is not configured. Missing client credentials.")
+            
         flow = Flow.from_client_config(
             {
                 "web": {
@@ -48,6 +52,10 @@ class GoogleDriveService:
     
     def handle_callback(self, authorization_response: str, state: str, user_id: int) -> bool:
         """Handle OAuth callback and store credentials"""
+        if not self.is_configured:
+            print("Error: Google Drive is not configured. Missing client credentials.")
+            return False
+            
         try:
             flow = Flow.from_client_config(
                 {
