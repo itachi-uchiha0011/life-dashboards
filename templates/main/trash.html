@@ -47,14 +47,14 @@
                         </div>
                         <div class="d-flex gap-2">
                             <form method="POST" action="{{ url_for('main.restore_item', item_type='category', item_id=category.id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-arrow-counterclockwise me-1"></i>
                                     Restore
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('main.permanent_delete', item_type='category', item_id=category.id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirmDelete('This will permanently delete this workspace and all its pages. This cannot be undone.')">
                                     <i class="bi bi-trash me-1"></i>
                                     Delete Forever
@@ -91,14 +91,14 @@
                         </div>
                         <div class="d-flex gap-2">
                             <form method="POST" action="{{ url_for('main.restore_item', item_type='page', item_id=page.id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-arrow-counterclockwise me-1"></i>
                                     Restore
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('main.permanent_delete', item_type='page', item_id=page.id) }}" class="d-inline">
-                                {{ csrf_token() }}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirmDelete('This will permanently delete this page. This cannot be undone.')">
                                     <i class="bi bi-trash me-1"></i>
                                     Delete Forever
