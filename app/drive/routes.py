@@ -14,12 +14,21 @@ drive_bp = Blueprint('drive', __name__, url_prefix='/drive')
 def connect():
     """Initiate Google Drive connection"""
     drive_service = GoogleDriveService()
-    auth_url, state = drive_service.get_authorization_url()
     
-    # Store state in session for security
-    session['google_oauth_state'] = state
+    if not drive_service.is_configured:
+        flash('Google Drive integration is not configured. Please contact your administrator.', 'error')
+        return redirect(url_for('dashboard.settings'))
     
-    return redirect(auth_url)
+    try:
+        auth_url, state = drive_service.get_authorization_url()
+        
+        # Store state in session for security
+        session['google_oauth_state'] = state
+        
+        return redirect(auth_url)
+    except Exception as e:
+        flash(f'Failed to initiate Google Drive connection: {str(e)}', 'error')
+        return redirect(url_for('dashboard.settings'))
 
 @drive_bp.route('/callback')
 @login_required
@@ -171,6 +180,28 @@ def backup_status():
     status = backup_service.get_backup_status(current_user.id)
     
     return jsonify(status)
+
+@drive_bp.route('/settings')
+@login_required
+def settings():
+    """Google Drive settings page"""
+    drive_service = GoogleDriveService()
+    
+    if not drive_service.is_configured:
+        flash('Google Drive integration is not configured. Please contact your administrator.', 'error')
+        return redirect(url_for('dashboard.settings'))
+    
+    is_connected = drive_service.is_connected(current_user.id)
+    
+    # Get recent backups
+    recent_backups = DriveBackup.query.filter_by(user_id=current_user.id).order_by(
+        DriveBackup.backup_date.desc()
+    ).limit(5).all()
+    
+    return render_template('drive/settings.html', 
+                         is_connected=is_connected, 
+                         recent_backups=recent_backups,
+                         drive_available=True)
 
 @drive_bp.route('/test-connection')
 @login_required

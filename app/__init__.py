@@ -38,6 +38,19 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     app.register_blueprint(api_bp, url_prefix="/api")
     app.register_blueprint(tasks_bp)
 
+    # Conditionally register Google Drive blueprint
+    if app.config.get('GOOGLE_CLIENT_ID') and app.config.get('GOOGLE_CLIENT_SECRET'):
+        try:
+            from .drive.routes import drive_bp
+            app.register_blueprint(drive_bp)
+            app.config['GOOGLE_DRIVE_ENABLED'] = True
+        except ImportError as e:
+            print(f"Warning: Could not import Google Drive module: {e}")
+            app.config['GOOGLE_DRIVE_ENABLED'] = False
+    else:
+        print("Warning: Google Drive credentials not configured. Drive integration disabled.")
+        app.config['GOOGLE_DRIVE_ENABLED'] = False
+
     # Start scheduler
     with app.app_context():
         from .jobs import schedule_jobs
