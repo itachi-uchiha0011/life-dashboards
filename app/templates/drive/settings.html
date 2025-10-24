@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Google Drive Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cloud"></i> Google Drive Integration
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="drive-status" class="mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status" id="status-spinner">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <span id="status-text">Checking connection status...</span>
+                        </div>
+                    </div>
+
+                    <div id="drive-actions" class="d-none">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-link fa-2x text-primary mb-3"></i>
+                                        <h5>Connect Google Drive</h5>
+                                        <p class="text-muted">Connect your Google account to enable automatic backups</p>
+                                        <a href="{{ url_for('drive.connect') }}" class="btn btn-primary" id="connect-btn">
+                                            <i class="fab fa-google me-2"></i>Connect Google Drive
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-unlink fa-2x text-danger mb-3"></i>
+                                        <h5>Disconnect</h5>
+                                        <p class="text-muted">Remove Google Drive access from your account</p>
+                                        <button class="btn btn-outline-danger" id="disconnect-btn">
+                                            <i class="fas fa-unlink me-2"></i>Disconnect
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="backup-controls" class="mt-4 d-none">
+                        <h5>Backup Controls</h5>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-book fa-2x text-info mb-3"></i>
+                                        <h6>Backup Journals</h6>
+                                        <button class="btn btn-outline-info btn-sm" id="backup-journals-btn">
+                                            Backup All Journals
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file fa-2x text-warning mb-3"></i>
+                                        <h6>Backup Files</h6>
+                                        <button class="btn btn-outline-warning btn-sm" id="backup-files-btn">
+                                            Backup All Files
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-download fa-2x text-success mb-3"></i>
+                                        <h6>Full Export</h6>
+                                        <button class="btn btn-outline-success btn-sm" id="full-export-btn">
+                                            Create Full Export
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="backup-status" class="mt-4 d-none">
+                        <h5>Backup Status</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Last Backup</h6>
+                                        <p id="last-backup-date" class="text-muted">Never</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Total Backups</h6>
+                                        <p id="total-backups" class="text-muted">0</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">How it works</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="small">
+                        <li class="mb-2">Connect your Google account using the button above</li>
+                        <li class="mb-2">Authorize the app to access your Google Drive</li>
+                        <li class="mb-2">Your data will be backed up to a "Life Dashboard Backups" folder</li>
+                        <li class="mb-2">Journals are organized by year and month</li>
+                        <li class="mb-2">Files and exports are stored in separate folders</li>
+                        <li class="mb-2">You can manually trigger backups anytime</li>
+                    </ol>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Your data remains private and is only accessible to you through your Google account.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusDiv = document.getElementById('drive-status');
+    const statusText = document.getElementById('status-text');
+    const statusSpinner = document.getElementById('status-spinner');
+    const actionsDiv = document.getElementById('drive-actions');
+    const backupControls = document.getElementById('backup-controls');
+    const backupStatus = document.getElementById('backup-status');
+    
+    // Check connection status
+    fetch('/drive/status')
+        .then(response => response.json())
+        .then(data => {
+            statusSpinner.classList.add('d-none');
+            
+            if (data.connected) {
+                statusText.innerHTML = '<i class="fas fa-check-circle text-success me-2"></i>Google Drive Connected';
+                actionsDiv.classList.remove('d-none');
+                backupControls.classList.remove('d-none');
+                backupStatus.classList.remove('d-none');
+                loadBackupStatus();
+            } else {
+                statusText.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i>Google Drive Not Connected';
+                actionsDiv.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            statusSpinner.classList.add('d-none');
+            statusText.innerHTML = '<i class="fas fa-exclamation-triangle text-warning me-2"></i>Error checking status';
+        });
+    
+    // Disconnect button
+    document.getElementById('disconnect-btn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to disconnect Google Drive? This will stop automatic backups.')) {
+            window.location.href = '/drive/disconnect';
+        }
+    });
+    
+    // Backup buttons
+    document.getElementById('backup-journals-btn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Backing up...';
+        
+        fetch('/drive/backup-all-journals')
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                this.disabled = false;
+                this.innerHTML = 'Backup All Journals';
+                loadBackupStatus();
+            })
+            .catch(error => {
+                alert('Error backing up journals');
+                this.disabled = false;
+                this.innerHTML = 'Backup All Journals';
+            });
+    });
+    
+    document.getElementById('backup-files-btn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Backing up...';
+        
+        fetch('/drive/backup-files')
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                this.disabled = false;
+                this.innerHTML = 'Backup All Files';
+                loadBackupStatus();
+            })
+            .catch(error => {
+                alert('Error backing up files');
+                this.disabled = false;
+                this.innerHTML = 'Backup All Files';
+            });
+    });
+    
+    document.getElementById('full-export-btn').addEventListener('click', function() {
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating...';
+        
+        fetch('/drive/full-export')
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                this.disabled = false;
+                this.innerHTML = 'Create Full Export';
+                loadBackupStatus();
+            })
+            .catch(error => {
+                alert('Error creating export');
+                this.disabled = false;
+                this.innerHTML = 'Create Full Export';
+            });
+    });
+    
+    function loadBackupStatus() {
+        fetch('/drive/backup-status')
+            .then(response => response.json())
+            .then(data => {
+                if (data.last_backup) {
+                    document.getElementById('last-backup-date').textContent = new Date(data.last_backup).toLocaleString();
+                }
+                document.getElementById('total-backups').textContent = data.total_backups || 0;
+            })
+            .catch(error => console.error('Error loading backup status:', error));
+    }
+});
+</script>
+{% endblock %}

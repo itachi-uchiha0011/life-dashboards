@@ -1,6 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
-<h3 class="mb-3">Dashboard</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>Dashboard</h3>
+  <div>
+    {% if drive_connected %}
+      <span class="badge bg-success me-2">
+        <i class="fas fa-cloud me-1"></i>Google Drive Connected
+      </span>
+    {% else %}
+      <a href="{{ url_for('drive.settings') }}" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-cloud me-1"></i>Connect Google Drive
+      </a>
+    {% endif %}
+    <a href="{{ url_for('dashboard.settings') }}" class="btn btn-sm btn-outline-secondary">
+      <i class="fas fa-cog me-1"></i>Settings
+    </a>
+  </div>
+</div>
 <div class="row g-3">
   <div class="col-md-6">
     <div class="card">
@@ -70,6 +86,10 @@
     </div>
   </div>
 
+  <div class="col-md-6">
+    {% include 'widgets/calendar_widget.html' %}
+  </div>
+
   <div class="col-12">
     <div class="card">
       <div class="card-header">Journal Heatmap</div>
@@ -79,34 +99,74 @@
     </div>
   </div>
 
-  <div class="col-md-6">
+  <div class="col-12">
     <div class="card">
-      <div class="card-header">What I Learnt Today</div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="title" value="What I Learnt Today">
-          <div id="learn-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='What I Learnt Today' else '') | safe }}</div>
-          <input type="hidden" name="content" id="learn-content">
-          <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('learn-editor','learn-content')">Save</button>
-        </form>
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Today's Journal</h5>
+        <a href="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}" class="btn btn-sm btn-outline-primary">
+          <i class="fas fa-external-link-alt me-1"></i>Full Editor
+        </a>
       </div>
-    </div>
-  </div>
-
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">Mistakes I Made Today</div>
       <div class="card-body">
         <form method="post" action="{{ url_for('journal.journal_day', entry_date=today.isoformat()) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="title" value="Mistakes I Made Today">
-          <div id="mistakes-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='Mistakes I Made Today' else '') | safe }}</div>
-          <input type="hidden" name="content" id="mistakes-content">
-          <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('mistakes-editor','mistakes-content')">Save</button>
+          <input type="hidden" name="title" value="Today's Journal">
+          <div id="main-journal-editor" class="quill-editor" style="height: 200px;">{{ (today_entry.content if today_entry and today_entry.title=='Today\'s Journal' else '') | safe }}</div>
+          <input type="hidden" name="content" id="main-journal-content">
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <button class="btn btn-primary" type="submit" onclick="syncQuill('main-journal-editor','main-journal-content')">
+              <i class="fas fa-save me-1"></i>Save Journal
+            </button>
+            {% if today_entry and today_entry.id %}
+              <button type="button" class="btn btn-outline-info" onclick="backupJournal({{ today_entry.id }})">
+                <i class="fas fa-cloud-upload-alt me-1"></i>Backup to Drive
+              </button>
+            {% endif %}
+          </div>
         </form>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+function backupJournal(entryId) {
+  const btn = event.target;
+  const originalText = btn.innerHTML;
+  
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Backing up...';
+  
+  fetch(`/journal/backup/${entryId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      btn.innerHTML = '<i class="fas fa-check me-1"></i>Backed up!';
+      btn.classList.remove('btn-outline-info');
+      btn.classList.add('btn-success');
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-info');
+        btn.disabled = false;
+      }, 2000);
+    } else {
+      alert(data.message || 'Failed to backup journal');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error backing up journal');
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  });
+}
+</script>
 {% endblock %}

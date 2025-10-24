@@ -28,6 +28,8 @@ class User(UserMixin, db.Model):
     files = db.relationship("FileAsset", backref="user", lazy=True, cascade="all, delete-orphan")
     todos = db.relationship("TodoItem", backref="user", lazy=True, cascade="all, delete-orphan")
     daily_scores = db.relationship("DailyScore", backref="user", lazy=True, cascade="all, delete-orphan")
+    google_drive_tokens = db.relationship("GoogleDriveToken", backref="user", lazy=True, cascade="all, delete-orphan")
+    drive_backups = db.relationship("DriveBackup", backref="user", lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -87,8 +89,26 @@ class Category(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
 
     subpages = db.relationship("Subpage", backref="category", lazy=True, cascade="all, delete-orphan")
+
+    def soft_delete(self):
+        """Soft delete the category"""
+        self.is_deleted = True
+        self.deleted_at = datetime.utcnow()
+        # Also soft delete all subpages
+        for subpage in self.subpages:
+            subpage.soft_delete()
+
+    def restore(self):
+        """Restore the category from trash"""
+        self.is_deleted = False
+        self.deleted_at = None
+        # Also restore all subpages
+        for subpage in self.subpages:
+            subpage.restore()
 
 
 class Subpage(db.Model):
@@ -101,8 +121,20 @@ class Subpage(db.Model):
     content = db.Column(db.Text, nullable=True)  # rich HTML (Quill)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
 
     files = db.relationship("FileAsset", backref="subpage", lazy=True, cascade="all, delete-orphan")
+
+    def soft_delete(self):
+        """Soft delete the subpage"""
+        self.is_deleted = True
+        self.deleted_at = datetime.utcnow()
+
+    def restore(self):
+        """Restore the subpage from trash"""
+        self.is_deleted = False
+        self.deleted_at = None
 
 
 class FileAsset(db.Model):
@@ -174,6 +206,58 @@ class DailyScore(db.Model):
             return "yellow"
         else:
             return "red"
+
+
+class GoogleDriveToken(db.Model):
+    __tablename__ = "google_drive_tokens"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    access_token = db.Column(db.Text, nullable=False)
+    refresh_token = db.Column(db.Text, nullable=True)
+    token_uri = db.Column(db.String(500), nullable=True)
+    client_id = db.Column(db.String(500), nullable=True)
+    client_secret = db.Column(db.String(500), nullable=True)
+    scopes = db.Column(db.Text, nullable=True)  # JSON array of scopes
+    expiry = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    def is_expired(self) -> bool:
+        """Check if the token is expired"""
+        if not self.expiry:
+            return True
+        return datetime.utcnow() >= self.expiry
+
+    def to_credentials_dict(self) -> dict:
+        """Convert to google-auth credentials format"""
+        return {
+            "token": self.access_token,
+            "refresh_token": self.refresh_token,
+            "token_uri": self.token_uri,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "scopes": self.scopes.split(",") if self.scopes else [],
+            "expiry": self.expiry.isoformat() if self.expiry else None
+        }
+
+
+class DriveBackup(db.Model):
+    __tablename__ = "drive_backups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    backup_type = db.Column(db.String(50), nullable=False)  # journal, file, export, etc.
+    file_id = db.Column(db.String(255), nullable=False)  # Google Drive file ID
+    file_name = db.Column(db.String(255), nullable=False)
+    file_path = db.Column(db.String(500), nullable=True)  # Local file path if applicable
+    mime_type = db.Column(db.String(100), nullable=True)
+    file_size = db.Column(db.Integer, nullable=True)
+    backup_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    last_synced = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    status = db.Column(db.String(20), default="active", nullable=False)  # active, deleted, error
+
+    __table_args__ = (db.UniqueConstraint("user_id", "file_id", name="uq_user_drive_file"),)
 
 
 def get_user_streak(user_id: int, habit_id: int) -> int:

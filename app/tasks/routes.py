@@ -4,7 +4,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..models import DailyScore
+from ..models import DailyScore, JournalEntry
 from ..forms import DailyTaskForm
 from . import tasks_bp
 
@@ -148,6 +148,10 @@ def calendar_view():
     next_month = month + 1 if month < 12 else 1
     next_year = year if month < 12 else year + 1
     
+    # Get today's journal entries for the journal sections
+    today = date.today()
+    today_entry = JournalEntry.query.filter_by(user_id=current_user.id, entry_date=today).first()
+    
     return render_template(
         'tasks/calendar.html',
         calendar_data=calendar_data,
@@ -157,7 +161,9 @@ def calendar_view():
         prev_month=prev_month,
         prev_year=prev_year,
         next_month=next_month,
-        next_year=next_year
+        next_year=next_year,
+        today_entry=today_entry,
+        today=today
     )
 
 
@@ -198,3 +204,52 @@ def day_details(year, month, day):
             })
     except ValueError:
         return jsonify({'error': 'Invalid date'}), 400
+
+
+@tasks_bp.route('/api/calendar-widget')
+@login_required
+def calendar_widget_data():
+    """Get calendar data for dashboard widget"""
+    today = date.today()
+    
+    # Get current month data
+    first_day = date(today.year, today.month, 1)
+    last_day = date(today.year, today.month, monthrange(today.year, today.month)[1])
+    
+    # Get all scores for the month
+    scores = DailyScore.query.filter(
+        DailyScore.user_id == current_user.id,
+        DailyScore.date >= first_day,
+        DailyScore.date <= last_day
+    ).all()
+    
+    # Create a dictionary for quick lookup
+    scores_dict = {score.date: score for score in scores}
+    
+    # Calculate calendar grid (current month only)
+    calendar_data = []
+    start_date = first_day - timedelta(days=first_day.weekday())
+    
+    # Generate 6 weeks (42 days) to fill the calendar grid
+    for week in range(6):
+        week_data = []
+        for day in range(7):
+            current_date = start_date + timedelta(days=week * 7 + day)
+            score = scores_dict.get(current_date)
+            
+            week_data.append({
+                'date': current_date.isoformat(),
+                'day': current_date.day,
+                'score': score.total_points if score else None,
+                'color': score.get_score_color() if score else 'gray',
+                'is_current_month': current_date.month == today.month,
+                'is_today': current_date == today
+            })
+        calendar_data.append(week_data)
+    
+    return jsonify({
+        'calendar_data': calendar_data,
+        'current_month': today.month,
+        'current_year': today.year,
+        'month_name': first_day.strftime('%B')
+    })

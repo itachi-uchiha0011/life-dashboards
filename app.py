@@ -45,12 +45,14 @@ def create_app():
     from routes.categories import categories_bp
     from routes.pages import pages_bp
     from routes.api import api_bp
+    from app.drive.routes import drive_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(main_bp)
     app.register_blueprint(categories_bp, url_prefix='/category')
     app.register_blueprint(pages_bp, url_prefix='/page')
     app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(drive_bp)
     
     # Context processor for theme
     @app.context_processor
