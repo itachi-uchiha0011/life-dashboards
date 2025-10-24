@@ -27,6 +27,7 @@ class User(UserMixin, db.Model):
     subpages = db.relationship("Subpage", backref="user", lazy=True, cascade="all, delete-orphan")
     files = db.relationship("FileAsset", backref="user", lazy=True, cascade="all, delete-orphan")
     todos = db.relationship("TodoItem", backref="user", lazy=True, cascade="all, delete-orphan")
+    daily_scores = db.relationship("DailyScore", backref="user", lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -140,6 +141,39 @@ class Reminder(db.Model):
     weekdays = db.Column(db.String(20), nullable=True)  # e.g. "0,1,2" for Sun,Mon,Tue
     enabled = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
+class DailyScore(db.Model):
+    __tablename__ = "daily_scores"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    date = db.Column(db.Date, nullable=False, index=True, default=date.today)
+    do_points = db.Column(db.Integer, default=0, nullable=False)  # 0-4 points
+    dont_points = db.Column(db.Integer, default=0, nullable=False)  # 0-4 points
+    journal_point = db.Column(db.Integer, default=0, nullable=False)  # 0-1 point
+    learning_point = db.Column(db.Integer, default=0, nullable=False)  # 0-1 point
+    total_points = db.Column(db.Integer, default=0, nullable=False)  # calculated field
+    journal_text = db.Column(db.Text, nullable=True)  # what user learned
+    learning_text = db.Column(db.Text, nullable=True)  # mistakes/learnings today
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    __table_args__ = (db.UniqueConstraint("user_id", "date", name="uq_daily_score_once_per_day"),)
+
+    def calculate_total_points(self):
+        """Calculate total points from all components"""
+        self.total_points = self.do_points + self.dont_points + self.journal_point + self.learning_point
+        return self.total_points
+
+    def get_score_color(self):
+        """Get color based on total points"""
+        if self.total_points >= 7:
+            return "green"
+        elif self.total_points >= 4:
+            return "yellow"
+        else:
+            return "red"
 
 
 def get_user_streak(user_id: int, habit_id: int) -> int:

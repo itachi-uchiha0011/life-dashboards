@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Daily Tasks - {{ today.strftime('%B %d, %Y') }}</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('tasks.calendar_view') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-calendar3"></i> Calendar View
+                </a>
+            </div>
+        </div>
+
+        {% if today_score %}
+        <div class="alert alert-info">
+            <h5 class="alert-heading">Today's Score: {{ today_score.total_points }}/10</h5>
+            <div class="row">
+                <div class="col-md-3">
+                    <small class="text-muted">Do's: {{ today_score.do_points }}/4</small>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">Don'ts: {{ today_score.dont_points }}/4</small>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">Journal: {{ today_score.journal_point }}/1</small>
+                </div>
+                <div class="col-md-3">
+                    <small class="text-muted">Learning: {{ today_score.learning_point }}/1</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('tasks.submit_daily_tasks') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="row">
+                <!-- Do's Section -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-check-circle"></i> Do's ({{ form.calculate_do_points() }}/4)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.do_1(class="form-check-input") }}
+                                {{ form.do_1.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.do_2(class="form-check-input") }}
+                                {{ form.do_2.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.do_3(class="form-check-input") }}
+                                {{ form.do_3.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check">
+                                {{ form.do_4(class="form-check-input") }}
+                                {{ form.do_4.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Don'ts Section -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-x-circle"></i> Don'ts ({{ form.calculate_dont_points() }}/4)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.dont_1(class="form-check-input") }}
+                                {{ form.dont_1.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.dont_2(class="form-check-input") }}
+                                {{ form.dont_2.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.dont_3(class="form-check-input") }}
+                                {{ form.dont_3.label(class="form-check-label") }}
+                            </div>
+                            <div class="form-check">
+                                {{ form.dont_4(class="form-check-input") }}
+                                {{ form.dont_4.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Journal and Learning Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-journal-text"></i> Journal Entry ({{ form.calculate_journal_point() }}/1)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.journal_point(class="form-check-input") }}
+                                {{ form.journal_point.label(class="form-check-label") }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.journal_text.label(class="form-label") }}
+                                {{ form.journal_text(class="form-control", rows="4") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-lightbulb"></i> Learning/Mistakes ({{ form.calculate_learning_point() }}/1)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.learning_point(class="form-check-input") }}
+                                {{ form.learning_point.label(class="form-check-label") }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.learning_text.label(class="form-label") }}
+                                {{ form.learning_text(class="form-control", rows="4") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-save"></i> Save Daily Tasks
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-calculate and update point displays
+function updatePointDisplays() {
+    const doPoints = document.querySelectorAll('input[name^="do_"]:checked').length;
+    const dontPoints = document.querySelectorAll('input[name^="dont_"]:checked').length;
+    const journalPoint = document.querySelector('input[name="journal_point"]:checked') ? 1 : 0;
+    const learningPoint = document.querySelector('input[name="learning_point"]:checked') ? 1 : 0;
+    
+    // Update the display in the card headers
+    document.querySelector('.card-header.bg-success h5').innerHTML = 
+        `<i class="bi bi-check-circle"></i> Do's (${doPoints}/4)`;
+    document.querySelector('.card-header.bg-danger h5').innerHTML = 
+        `<i class="bi bi-x-circle"></i> Don'ts (${dontPoints}/4)`;
+    document.querySelector('.card-header.bg-info h5').innerHTML = 
+        `<i class="bi bi-journal-text"></i> Journal Entry (${journalPoint}/1)`;
+    document.querySelector('.card-header.bg-warning h5').innerHTML = 
+        `<i class="bi bi-lightbulb"></i> Learning/Mistakes (${learningPoint}/1)`;
+}
+
+// Add event listeners to all checkboxes
+document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', updatePointDisplays);
+});
+
+// Initial calculation
+updatePointDisplays();
+</script>
+{% endblock %}
