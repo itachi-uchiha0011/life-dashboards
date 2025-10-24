@@ -86,6 +86,43 @@
     </div>
 </div>
 
+<!-- Journal Sections -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">What I Learnt Today</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('journal.journal_day', entry_date=date.today().isoformat()) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="title" value="What I Learnt Today">
+                    <div id="learn-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='What I Learnt Today' else '') | safe }}</div>
+                    <input type="hidden" name="content" id="learn-content">
+                    <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('learn-editor','learn-content')">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Mistakes I Made Today</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('journal.journal_day', entry_date=date.today().isoformat()) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="title" value="Mistakes I Made Today">
+                    <div id="mistakes-editor" class="quill-editor" style="height: 150px;">{{ (today_entry.content if today_entry and today_entry.title=='Mistakes I Made Today' else '') | safe }}</div>
+                    <input type="hidden" name="content" id="mistakes-content">
+                    <button class="btn btn-primary mt-2" type="submit" onclick="syncQuill('mistakes-editor','mistakes-content')">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Day Details Modal -->
 <div class="modal fade" id="dayModal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">

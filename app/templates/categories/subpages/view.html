@@ -1,6 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
-<h3>{{ subpage.title }}</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3>{{ subpage.title }}</h3>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('categories.view_category', category_id=subpage.category_id) }}" class="btn btn-outline-secondary">
+      <i class="fas fa-arrow-left me-2"></i>Back to Category
+    </a>
+    <form method="post" action="{{ url_for('categories.delete_subpage', subpage_id=subpage.id) }}" onsubmit="return confirm('Move to trash?')" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline-danger">
+        <i class="fas fa-trash me-2"></i>Delete
+      </button>
+    </form>
+  </div>
+</div>
+
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="mb-2">

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Trash - Categories{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-trash me-2"></i>Trash</h3>
+    <a href="{{ url_for('categories.list_categories') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Categories
+    </a>
+</div>
+
+{% if deleted_categories or deleted_subpages %}
+    <div class="row">
+        {% if deleted_categories %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-folder me-2"></i>Deleted Categories</h5>
+                </div>
+                <div class="card-body">
+                    {% for category in deleted_categories %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1">{{ category.name }}</h6>
+                            <small class="text-muted">
+                                Deleted: {{ category.deleted_at.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <form method="POST" action="{{ url_for('categories.restore_category', category_id=category.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-success" title="Restore">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('categories.permanent_delete_category', category_id=category.id) }}" class="d-inline" 
+                                  onsubmit="return confirm('Are you sure you want to permanently delete this category? This action cannot be undone.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger" title="Permanently Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if deleted_subpages %}
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file me-2"></i>Deleted Subpages</h5>
+                </div>
+                <div class="card-body">
+                    {% for subpage in deleted_subpages %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1">{{ subpage.title }}</h6>
+                            <small class="text-muted">
+                                Deleted: {{ subpage.deleted_at.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <form method="POST" action="{{ url_for('categories.restore_subpage', subpage_id=subpage.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-success" title="Restore">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('categories.permanent_delete_subpage', subpage_id=subpage.id) }}" class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to permanently delete this subpage? This action cannot be undone.')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-outline-danger" title="Permanently Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-trash fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">Trash is empty</h5>
+        <p class="text-muted">Deleted categories and subpages will appear here.</p>
+    </div>
+{% endif %}
+{% endblock %}

@@ -29,7 +29,12 @@ def index():
         .all()
     )
 
-    today_entry = JournalEntry.query.filter_by(user_id=current_user.id, entry_date=today).first()
+    # Get today's main journal entry
+    today_entry = JournalEntry.query.filter_by(
+        user_id=current_user.id, 
+        entry_date=today,
+        title="Today's Journal"
+    ).first()
 
     # Check Google Drive connection status
     drive_service = GoogleDriveService()

@@ -1,0 +1,123 @@
+<!-- Calendar Widget for Dashboard -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+            <i class="fas fa-calendar-alt me-2"></i>Calendar
+        </h6>
+        <a href="{{ url_for('tasks.calendar_view') }}" class="btn btn-sm btn-outline-primary">
+            View Full
+        </a>
+    </div>
+    <div class="card-body p-2">
+        <div id="calendar-widget">
+            <div class="text-center">
+                <div class="spinner-border spinner-border-sm" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load calendar widget data
+    fetch('/tasks/api/calendar-widget')
+        .then(response => response.json())
+        .then(data => {
+            renderCalendarWidget(data);
+        })
+        .catch(error => {
+            console.error('Error loading calendar widget:', error);
+            document.getElementById('calendar-widget').innerHTML = 
+                '<div class="text-center text-muted">Error loading calendar</div>';
+        });
+});
+
+function renderCalendarWidget(data) {
+    const widget = document.getElementById('calendar-widget');
+    
+    let html = `
+        <div class="text-center mb-2">
+            <h6 class="mb-0">${data.month_name} ${data.current_year}</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-center p-1">M</th>
+                        <th class="text-center p-1">T</th>
+                        <th class="text-center p-1">W</th>
+                        <th class="text-center p-1">T</th>
+                        <th class="text-center p-1">F</th>
+                        <th class="text-center p-1">S</th>
+                        <th class="text-center p-1">S</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    data.calendar_data.forEach(week => {
+        html += '<tr>';
+        week.forEach(day => {
+            const isCurrentMonth = day.is_current_month ? '' : 'text-muted';
+            const isToday = day.is_today ? 'border-primary border-2' : '';
+            const scoreBadge = day.score !== null ? 
+                `<span class="badge ${getScoreBadgeClass(day.color)}" style="font-size: 0.6rem;">${day.score}</span>` : 
+                '<span class="badge bg-secondary" style="font-size: 0.6rem;">-</span>';
+            
+            html += `
+                <td class="text-center p-1 ${isCurrentMonth} ${isToday}" 
+                    style="min-height: 40px; vertical-align: middle; cursor: pointer;"
+                    onclick="showDayDetails('${day.date}')">
+                    <div class="d-flex flex-column align-items-center">
+                        <span style="font-size: 0.8rem; font-weight: bold;">${day.day}</span>
+                        ${scoreBadge}
+                    </div>
+                </td>
+            `;
+        });
+        html += '</tr>';
+    });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-2">
+            <small class="text-muted">
+                <span class="badge bg-success me-1" style="font-size: 0.6rem;">7+</span>
+                <span class="badge bg-warning text-dark me-1" style="font-size: 0.6rem;">4-6</span>
+                <span class="badge bg-danger me-1" style="font-size: 0.6rem;">0-3</span>
+                <span class="badge bg-secondary" style="font-size: 0.6rem;">-</span>
+            </small>
+        </div>
+    `;
+    
+    widget.innerHTML = html;
+}
+
+function getScoreBadgeClass(color) {
+    switch(color) {
+        case 'green': return 'bg-success';
+        case 'yellow': return 'bg-warning text-dark';
+        case 'red': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+function showDayDetails(dateStr) {
+    // Redirect to calendar page with the specific date
+    window.location.href = `/tasks/calendar?date=${dateStr}`;
+}
+</script>
+
+<style>
+.calendar-widget td:hover {
+    background-color: #f8f9fa !important;
+}
+
+.calendar-widget td {
+    transition: background-color 0.2s ease;
+}
+</style>

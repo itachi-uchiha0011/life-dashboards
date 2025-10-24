@@ -89,8 +89,26 @@ class Category(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name = db.Column(db.String(120), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
 
     subpages = db.relationship("Subpage", backref="category", lazy=True, cascade="all, delete-orphan")
+
+    def soft_delete(self):
+        """Soft delete the category"""
+        self.is_deleted = True
+        self.deleted_at = datetime.utcnow()
+        # Also soft delete all subpages
+        for subpage in self.subpages:
+            subpage.soft_delete()
+
+    def restore(self):
+        """Restore the category from trash"""
+        self.is_deleted = False
+        self.deleted_at = None
+        # Also restore all subpages
+        for subpage in self.subpages:
+            subpage.restore()
 
 
 class Subpage(db.Model):
@@ -103,8 +121,20 @@ class Subpage(db.Model):
     content = db.Column(db.Text, nullable=True)  # rich HTML (Quill)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    deleted_at = db.Column(db.DateTime, nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False, nullable=False)
 
     files = db.relationship("FileAsset", backref="subpage", lazy=True, cascade="all, delete-orphan")
+
+    def soft_delete(self):
+        """Soft delete the subpage"""
+        self.is_deleted = True
+        self.deleted_at = datetime.utcnow()
+
+    def restore(self):
+        """Restore the subpage from trash"""
+        self.is_deleted = False
+        self.deleted_at = None
 
 
 class FileAsset(db.Model):
