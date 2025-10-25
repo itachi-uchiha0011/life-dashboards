@@ -49,4 +49,11 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
     def load_user(user_id: str):
         return db.session.get(User, int(user_id))
 
+    @app.route('/uploads/<path:filename>')
+    def block_uploads_access(filename):
+        """Block direct access to uploads folder"""
+        from flask import redirect, url_for, flash
+        flash("Direct access to uploads folder is not allowed.", "warning")
+        return redirect(url_for("files.list_files"))
+
     return app

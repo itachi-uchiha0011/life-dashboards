@@ -6,6 +6,7 @@ import os
 from ..extensions import db
 from ..models import Category, Subpage, FileAsset
 from ..config import Config
+from ..storage import upload_file
 from . import categories_bp
 
 
@@ -93,18 +94,28 @@ def upload_to_subpage(subpage_id: int):
         flash("File type not allowed.", "danger")
         return redirect(url_for("categories.view_subpage", subpage_id=sp.id))
 
-    user_folder = os.path.join(Config.UPLOAD_FOLDER, f"user_{current_user.id}")
-    os.makedirs(user_folder, exist_ok=True)
-
+    # Read file data
+    file_data = file.read()
     filename = secure_filename(file.filename)
-    filepath = os.path.join(user_folder, filename)
-    file.save(filepath)
+    
+    # Upload using new storage system
+    file_url, file_path = upload_file(
+        file_bytes=file_data,
+        filename=filename,
+        mimetype=file.mimetype,
+        user_id=current_user.id
+    )
+    
+    if not file_url and not file_path:
+        flash("File upload failed.", "danger")
+        return redirect(url_for("categories.view_subpage", subpage_id=sp.id))
 
+    # Create file asset record
     asset = FileAsset(
         user_id=current_user.id,
         subpage_id=sp.id,
         filename=filename,
-        filepath=filepath,
+        filepath=file_url or file_path,  # Use cloud URL or local path
         mimetype=file.mimetype,
     )
     db.session.add(asset)

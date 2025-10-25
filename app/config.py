@@ -29,6 +29,12 @@ class Config:
 	SUPABASE_FILES_BUCKET = os.getenv("SUPABASE_FILES_BUCKET", "files")
 	SUPABASE_AVATARS_BUCKET = os.getenv("SUPABASE_AVATARS_BUCKET", "avatars")
 
+	# Cloudinary Storage (for production)
+	CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+	CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+	CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+	CLOUDINARY_FOLDER = os.getenv("CLOUDINARY_FOLDER", "life-dashboards")
+
 	# Auth
 	REMEMBER_COOKIE_DURATION = timedelta(days=30)
 
