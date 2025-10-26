@@ -27,7 +27,7 @@ APScheduler==3.10.4
 # Database Drivers - Alternative approach
 # Use psycopg2 instead of psycopg2-binary
 psycopg[binary]>=3.1
-reportlab>=4.0.0
+reportlab
 # File handling
 Pillow==11.3.0
 
@@ -55,4 +55,3 @@ cryptography==44.0.2
 # Additional dependencies
 setuptools>=65.0.0
 wheel>=0.40.0
---upgrade reportlab
