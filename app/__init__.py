@@ -56,4 +56,9 @@ def create_app(config_class: type[Config] | None = None) -> Flask:
         flash("Direct access to uploads folder is not allowed.", "warning")
         return redirect(url_for("files.list_files"))
 
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for Docker"""
+        return {'status': 'healthy', 'message': 'Life Dashboards is running'}, 200
+
     return app

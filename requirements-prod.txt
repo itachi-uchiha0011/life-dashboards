@@ -1,0 +1,9 @@
+# Production dependencies
+-r requirements.txt
+
+# Production optimizations
+gunicorn==23.0.0
+whitenoise==6.8.2
+
+# Monitoring (optional)
+sentry-sdk[flask]==2.19.2
