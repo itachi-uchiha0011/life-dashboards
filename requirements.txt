@@ -3,7 +3,7 @@ Flask-Login==0.6.3
 Flask-Migrate==4.0.7
 Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.31
-psycopg==3.2.9
+psycopg
 python-dotenv==1.0.1
 APScheduler==3.10.4
 itsdangerous==2.2.0
