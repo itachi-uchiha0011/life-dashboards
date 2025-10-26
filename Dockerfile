@@ -47,33 +47,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get(f'http://localhost:$PORT/health', timeout=10)" || exit 1
 
 # Start command (Render.com compatible)
-CMD python -c "
-import os
-import subprocess
-import sys
-
-# Get port from environment
-port = os.getenv('PORT', '8080')
-
-# Run database migrations
-print('Running database migrations...')
-try:
-    subprocess.run([sys.executable, '-m', 'flask', 'db', 'upgrade'], check=True)
-    print('Database migrations completed successfully')
-except subprocess.CalledProcessError as e:
-    print(f'Database migration failed: {e}')
-    # Continue anyway for development
-
-# Start gunicorn
-print(f'Starting gunicorn on port {port}...')
-subprocess.run([
-    'gunicorn',
-    '--bind', f'0.0.0.0:{port}',
-    '--workers', '2',
-    '--timeout', '120',
-    '--keep-alive', '2',
-    '--max-requests', '1000',
-    '--max-requests-jitter', '100',
-    'wsgi:app'
-])
-"
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 wsgi:app
