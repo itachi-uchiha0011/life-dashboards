@@ -55,3 +55,4 @@ cryptography==44.0.2
 # Additional dependencies
 setuptools>=65.0.0
 wheel>=0.40.0
+--upgrade reportlab
