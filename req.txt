@@ -36,15 +36,18 @@ requests==2.32.5
 # Date/time utilities
 python-dateutil==2.9.0
 
-# Email support (optional)
+# Email support
 Flask-Mail==0.9.1
-
-# Additional dependencies
-setuptools>=65.0.0
-wheel>=0.40.0
 
 # Production server
 gunicorn==23.0.0
 
-# Development tools (optional - remove for production)
-# Flask-DebugToolbar==0.13.1
+# Production optimizations
+whitenoise==6.8.2
+
+# Security
+cryptography==44.0.2
+
+# Additional dependencies
+setuptools>=65.0.0
+wheel>=0.40.0

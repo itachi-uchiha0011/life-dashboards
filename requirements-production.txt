@@ -1,4 +1,7 @@
-# Production dependencies
+# Production Requirements for Life Dashboards
+# Optimized for Render.com and production deployment
+
+# Core Flask packages
 Flask==3.1.2
 Werkzeug==3.1.3
 Jinja2==3.1.6
@@ -36,12 +39,8 @@ requests==2.32.5
 # Date/time utilities
 python-dateutil==2.9.0
 
-# Email support (optional)
+# Email support
 Flask-Mail==0.9.1
-
-# Additional dependencies
-setuptools>=65.0.0
-wheel>=0.40.0
 
 # Production server
 gunicorn==23.0.0
@@ -49,5 +48,12 @@ gunicorn==23.0.0
 # Production optimizations
 whitenoise==6.8.2
 
+# Security
+cryptography==44.0.2
+
 # Monitoring (optional)
 sentry-sdk[flask]==2.19.2
+
+# Additional dependencies
+setuptools>=65.0.0
+wheel>=0.40.0
