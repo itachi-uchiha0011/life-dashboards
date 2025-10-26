@@ -9,10 +9,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     FLASK_APP=wsgi:app
 
-# Install system dependencies
+# Install system dependencies for psycopg2-binary
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     gcc \
+    g++ \
+    make \
+    libc6-dev \
+    libffi-dev \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
