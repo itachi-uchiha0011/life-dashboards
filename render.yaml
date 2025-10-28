@@ -3,7 +3,9 @@ services:
   - type: web
     name: life-dashboards
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install -r requirements.txt
+      mkdir -p instance uploads static/uploads
     startCommand: gunicorn wsgi:app
     envVars:
       - key: PYTHON_VERSION

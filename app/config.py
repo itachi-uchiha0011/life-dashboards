@@ -31,6 +31,8 @@ def _is_valid_database_url(url: str) -> bool:
 		"your-service-role-key",
 		"localhost:5432",  # Common placeholder
 		"db.example.com",  # Common placeholder
+		"placeholder",
+		"example.com",
 	]
 	
 	for pattern in invalid_patterns:
@@ -42,8 +44,26 @@ def _is_valid_database_url(url: str) -> bool:
 		try:
 			parsed = urlparse(url)
 			# Check if hostname looks like a placeholder
-			if not parsed.hostname or "supabase.co" not in parsed.hostname:
+			if not parsed.hostname:
 				return False
+			# Accept various valid PostgreSQL hosts (Render, Supabase, etc.)
+			valid_hosts = [
+				"supabase.co",
+				"render.com",
+				"amazonaws.com",
+				"heroku.com",
+				"railway.app",
+				"planetscale.com",
+				"neon.tech",
+				"vercel.com",
+				"fly.io",
+				"digitalocean.com",
+			]
+			# Check if hostname contains any valid domain
+			if not any(domain in parsed.hostname for domain in valid_hosts):
+				# Allow IP addresses and localhost for development
+				if not (parsed.hostname.replace(".", "").isdigit() or parsed.hostname == "localhost"):
+					return False
 		except Exception:
 			return False
 	
@@ -66,18 +86,41 @@ def _get_database_url() -> str:
 	# If no DATABASE_URL is set, use SQLite for local development
 	if not database_url:
 		logger.info("No DATABASE_URL found in environment, using SQLite for local development")
+		_ensure_sqlite_directory()
 		return "sqlite:///instance/app.db"
 	
 	# If DATABASE_URL is invalid or contains placeholders, fall back to SQLite
 	if not _is_valid_database_url(database_url):
 		logger.warning(f"Invalid DATABASE_URL detected: {database_url[:50]}... (contains placeholders or invalid format)")
 		logger.info("Falling back to SQLite for local development")
+		_ensure_sqlite_directory()
 		return "sqlite:///instance/app.db"
 	
 	# Normalize the URL for psycopg driver compatibility
 	normalized_url = _normalize_database_url(database_url)
 	logger.info(f"Using PostgreSQL database: {normalized_url.split('@')[1] if '@' in normalized_url else 'configured'}")
 	return normalized_url
+
+
+def _ensure_sqlite_directory():
+	"""Ensure the SQLite instance directory exists and is writable."""
+	import os
+	instance_dir = os.path.join(os.getcwd(), "instance")
+	try:
+		os.makedirs(instance_dir, exist_ok=True)
+		# Test if we can write to the directory
+		test_file = os.path.join(instance_dir, ".test_write")
+		with open(test_file, "w") as f:
+			f.write("test")
+		os.remove(test_file)
+		logger.info(f"SQLite directory ready: {instance_dir}")
+	except Exception as e:
+		logger.error(f"Cannot create/write to SQLite directory {instance_dir}: {e}")
+		# Fall back to a temporary directory
+		import tempfile
+		temp_dir = tempfile.mkdtemp()
+		logger.info(f"Using temporary directory for SQLite: {temp_dir}")
+		os.environ["SQLITE_TEMP_DIR"] = temp_dir
 
 
 class Config:
@@ -94,6 +137,10 @@ class Config:
 	# Database configuration with safe fallback logic
 	# This prevents SQLAlchemy OperationalError when DATABASE_URL is invalid/unreachable
 	SQLALCHEMY_DATABASE_URI = _get_database_url()
+	
+	# Handle SQLite temporary directory fallback
+	if SQLALCHEMY_DATABASE_URI.startswith("sqlite:///instance/") and os.getenv("SQLITE_TEMP_DIR"):
+		SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.getenv('SQLITE_TEMP_DIR')}/app.db"
 	SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 	# Uploads (local fallback, avoid for prod)

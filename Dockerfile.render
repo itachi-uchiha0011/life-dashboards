@@ -35,7 +35,8 @@ COPY --chown=appuser:appuser . .
 
 # Create necessary directories
 RUN mkdir -p /app/instance /app/uploads /app/static/uploads && \
-    chown -R appuser:appuser /app
+    chown -R appuser:appuser /app && \
+    chmod 755 /app/instance
 
 # Switch to non-root user
 USER appuser
