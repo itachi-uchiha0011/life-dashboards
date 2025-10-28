@@ -28,6 +28,7 @@ class User(UserMixin, db.Model):
     files = db.relationship("FileAsset", backref="user", lazy=True, cascade="all, delete-orphan")
     todos = db.relationship("TodoItem", backref="user", lazy=True, cascade="all, delete-orphan")
     daily_scores = db.relationship("DailyScore", backref="user", lazy=True, cascade="all, delete-orphan")
+    user_tasks = db.relationship("UserTask", backref="user", lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -141,6 +142,21 @@ class Reminder(db.Model):
     weekdays = db.Column(db.String(20), nullable=True)  # e.g. "0,1,2" for Sun,Mon,Tue
     enabled = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
+class UserTask(db.Model):
+    __tablename__ = "user_tasks"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    task_type = db.Column(db.String(10), nullable=False)  # 'do' or 'dont'
+    task_text = db.Column(db.String(255), nullable=False)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    position = db.Column(db.Integer, default=0, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    __table_args__ = (db.UniqueConstraint("user_id", "task_type", "position", name="uq_user_task_position"),)
 
 
 class DailyScore(db.Model):

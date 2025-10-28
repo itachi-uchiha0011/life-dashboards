@@ -137,7 +137,7 @@ document.querySelectorAll('.calendar-day').forEach(day => {
         `;
         
         // Fetch day details
-        fetch(`/tasks/api/day-details/${year}/${month}/${dayNum}`)
+        fetch(`/tasks/day-details/${year}/${month}/${dayNum}`)
             .then(response => response.json())
             .then(data => {
                 displayDayDetails(data);

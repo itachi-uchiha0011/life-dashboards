@@ -35,14 +35,31 @@
     <div class="row g-3">
       <div class="col-12">
         <div class="card">
-          <div class="card-header">Top 4 Things To Do</div>
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Things To Do ({{ all_todos|length }})</span>
+            {% if all_todos|length > 4 %}
+              <button class="btn btn-sm btn-outline-primary" onclick="toggleTodos('todo')" id="todo-toggle-btn">
+                <i class="bi bi-chevron-down"></i> Show All ({{ all_todos|length - 4 }} more)
+              </button>
+            {% endif %}
+          </div>
           <div class="card-body" id="todo-list" data-kind="todo">
-            {% for t in todos %}
-              <div class="form-check">
-                <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
-                <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
-              </div>
-            {% endfor %}
+            <div id="todo-visible">
+              {% for t in todos %}
+                <div class="form-check">
+                  <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                  <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+                </div>
+              {% endfor %}
+            </div>
+            <div id="todo-hidden" style="display: none;">
+              {% for t in all_todos[4:] %}
+                <div class="form-check">
+                  <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                  <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+                </div>
+              {% endfor %}
+            </div>
             <div class="input-group mt-2">
               <input id="todo-input" type="text" class="form-control" placeholder="Add task">
               <button class="btn btn-outline-primary add-todo">Add</button>
@@ -52,14 +69,31 @@
       </div>
       <div class="col-12">
         <div class="card">
-          <div class="card-header">Top 4 Things NOT To Do</div>
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Things NOT To Do ({{ all_not_todos|length }})</span>
+            {% if all_not_todos|length > 4 %}
+              <button class="btn btn-sm btn-outline-danger" onclick="toggleTodos('not_todo')" id="not-todo-toggle-btn">
+                <i class="bi bi-chevron-down"></i> Show All ({{ all_not_todos|length - 4 }} more)
+              </button>
+            {% endif %}
+          </div>
           <div class="card-body" id="not-todo-list" data-kind="not_todo">
-            {% for t in not_todos %}
-              <div class="form-check">
-                <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
-                <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
-              </div>
-            {% endfor %}
+            <div id="not-todo-visible">
+              {% for t in not_todos %}
+                <div class="form-check">
+                  <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                  <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+                </div>
+              {% endfor %}
+            </div>
+            <div id="not-todo-hidden" style="display: none;">
+              {% for t in all_not_todos[4:] %}
+                <div class="form-check">
+                  <input class="form-check-input todo-toggle" type="checkbox" data-id="{{ t.id }}" {% if t.is_done %}checked{% endif %}>
+                  <label class="form-check-label {{ 'text-decoration-line-through' if t.is_done }}">{{ t.label }}</label>
+                </div>
+              {% endfor %}
+            </div>
             <div class="input-group mt-2">
               <input id="not-todo-input" type="text" class="form-control" placeholder="Add anti-task">
               <button class="btn btn-outline-danger add-todo">Add</button>
@@ -109,4 +143,28 @@
     </div>
   </div>
 </div>
+<script>
+function toggleTodos(type) {
+    const visibleDiv = document.getElementById(`${type}-visible`);
+    const hiddenDiv = document.getElementById(`${type}-hidden`);
+    const toggleBtn = document.getElementById(`${type}-toggle-btn`);
+    const icon = toggleBtn.querySelector('i');
+    
+    if (hiddenDiv.style.display === 'none') {
+        hiddenDiv.style.display = 'block';
+        icon.className = 'bi bi-chevron-up';
+        const totalCount = document.querySelectorAll(`#${type}-list .form-check`).length;
+        const visibleCount = document.querySelectorAll(`#${type}-visible .form-check`).length;
+        const hiddenCount = totalCount - visibleCount;
+        toggleBtn.innerHTML = `<i class="bi bi-chevron-up"></i> Show Less (${hiddenCount} hidden)`;
+    } else {
+        hiddenDiv.style.display = 'none';
+        icon.className = 'bi bi-chevron-down';
+        const totalCount = document.querySelectorAll(`#${type}-list .form-check`).length;
+        const visibleCount = document.querySelectorAll(`#${type}-visible .form-check`).length;
+        const hiddenCount = totalCount - visibleCount;
+        toggleBtn.innerHTML = `<i class="bi bi-chevron-down"></i> Show All (${hiddenCount} more)`;
+    }
+}
+</script>
 {% endblock %}

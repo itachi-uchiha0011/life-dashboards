@@ -4,8 +4,8 @@ from flask import render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 
 from ..extensions import db
-from ..models import DailyScore
-from ..forms import DailyTaskForm
+from ..models import DailyScore, UserTask
+from ..forms import DailyTaskForm, UserTaskForm
 from . import tasks_bp
 
 
@@ -21,27 +21,34 @@ def daily_tasks():
         date=today
     ).first()
     
+    # Get user's active tasks
+    do_tasks = UserTask.query.filter_by(
+        user_id=current_user.id, 
+        task_type='do', 
+        is_active=True
+    ).order_by(UserTask.position.asc()).all()
+    
+    dont_tasks = UserTask.query.filter_by(
+        user_id=current_user.id, 
+        task_type='dont', 
+        is_active=True
+    ).order_by(UserTask.position.asc()).all()
+    
     form = DailyTaskForm()
     
     # Pre-populate form if today's score exists
     if today_score:
-        form.do_1.data = today_score.do_points >= 1
-        form.do_2.data = today_score.do_points >= 2
-        form.do_3.data = today_score.do_points >= 3
-        form.do_4.data = today_score.do_points >= 4
-        
-        form.dont_1.data = today_score.dont_points >= 1
-        form.dont_2.data = today_score.dont_points >= 2
-        form.dont_3.data = today_score.dont_points >= 3
-        form.dont_4.data = today_score.dont_points >= 4
-        
         form.journal_point.data = today_score.journal_point == 1
         form.learning_point.data = today_score.learning_point == 1
-        
         form.journal_text.data = today_score.journal_text
         form.learning_text.data = today_score.learning_text
     
-    return render_template('tasks/daily_tasks.html', form=form, today_score=today_score, today=today)
+    return render_template('tasks/daily_tasks.html', 
+                         form=form, 
+                         today_score=today_score, 
+                         today=today,
+                         do_tasks=do_tasks,
+                         dont_tasks=dont_tasks)
 
 
 @tasks_bp.route('/submit', methods=['POST'])
@@ -52,9 +59,17 @@ def submit_daily_tasks():
     today = date.today()
     
     if form.validate_on_submit():
-        # Calculate points
-        do_points = form.calculate_do_points()
-        dont_points = form.calculate_dont_points()
+        # Calculate points from submitted checkboxes
+        do_points = 0
+        dont_points = 0
+        
+        # Count checked do tasks
+        for key, value in request.form.items():
+            if key.startswith('do_task_') and value == 'on':
+                do_points += 1
+            elif key.startswith('dont_task_') and value == 'on':
+                dont_points += 1
+        
         journal_point = form.calculate_journal_point()
         learning_point = form.calculate_learning_point()
         
@@ -95,7 +110,7 @@ def submit_daily_tasks():
 
 @tasks_bp.route('/calendar')
 @login_required
-def calendar_view():
+def calendar():
     """Show monthly calendar view"""
     # Get current month/year from query params or use current date
     year = request.args.get('year', type=int) or date.today().year
@@ -161,7 +176,7 @@ def calendar_view():
     )
 
 
-@tasks_bp.route('/api/day-details/<int:year>/<int:month>/<int:day>')
+@tasks_bp.route('/day-details/<int:year>/<int:month>/<int:day>')
 @login_required
 def day_details(year, month, day):
     """Get details for a specific day (for tooltips/modals)"""
@@ -198,3 +213,98 @@ def day_details(year, month, day):
             })
     except ValueError:
         return jsonify({'error': 'Invalid date'}), 400
+
+
+@tasks_bp.route('/manage-tasks')
+@login_required
+def manage_tasks():
+    """Manage user tasks"""
+    do_tasks = UserTask.query.filter_by(
+        user_id=current_user.id, 
+        task_type='do', 
+        is_active=True
+    ).order_by(UserTask.position.asc()).all()
+    
+    dont_tasks = UserTask.query.filter_by(
+        user_id=current_user.id, 
+        task_type='dont', 
+        is_active=True
+    ).order_by(UserTask.position.asc()).all()
+    
+    form = UserTaskForm()
+    
+    return render_template('tasks/manage_tasks.html', 
+                         form=form,
+                         do_tasks=do_tasks,
+                         dont_tasks=dont_tasks)
+
+
+@tasks_bp.route('/add-task', methods=['POST'])
+@login_required
+def add_task():
+    """Add a new user task"""
+    form = UserTaskForm()
+    
+    if form.validate_on_submit():
+        # Get the next position for this task type
+        max_position = db.session.query(db.func.max(UserTask.position)).filter_by(
+            user_id=current_user.id,
+            task_type=form.task_type.data
+        ).scalar() or 0
+        
+        task = UserTask(
+            user_id=current_user.id,
+            task_type=form.task_type.data,
+            task_text=form.task_text.data,
+            position=max_position + 1
+        )
+        
+        db.session.add(task)
+        db.session.commit()
+        flash('Task added successfully!', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{field}: {error}', 'error')
+    
+    return redirect(url_for('tasks.manage_tasks'))
+
+
+@tasks_bp.route('/delete-task/<int:task_id>', methods=['POST'])
+@login_required
+def delete_task(task_id):
+    """Delete a user task"""
+    task = UserTask.query.filter_by(
+        id=task_id,
+        user_id=current_user.id
+    ).first()
+    
+    if task:
+        task.is_active = False
+        db.session.commit()
+        flash('Task deleted successfully!', 'success')
+    else:
+        flash('Task not found!', 'error')
+    
+    return redirect(url_for('tasks.manage_tasks'))
+
+
+@tasks_bp.route('/reorder-tasks', methods=['POST'])
+@login_required
+def reorder_tasks():
+    """Reorder user tasks"""
+    data = request.get_json()
+    task_type = data.get('task_type')
+    task_ids = data.get('task_ids', [])
+    
+    for i, task_id in enumerate(task_ids):
+        task = UserTask.query.filter_by(
+            id=task_id,
+            user_id=current_user.id,
+            task_type=task_type
+        ).first()
+        if task:
+            task.position = i + 1
+    
+    db.session.commit()
+    return jsonify({'success': True})

@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Manage Daily Tasks</h1>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('tasks.daily_tasks') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-list-check"></i> Daily Tasks
+                </a>
+                <a href="{{ url_for('tasks.calendar') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-calendar3"></i> Calendar View
+                </a>
+            </div>
+        </div>
+
+        <!-- Add New Task Form -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-plus-circle"></i> Add New Task
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('tasks.add_task') }}">
+                            {{ form.hidden_tag() }}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.task_text.label(class="form-label") }}
+                                        {{ form.task_text(class="form-control", placeholder="Enter task description") }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        {{ form.task_type.label(class="form-label") }}
+                                        {{ form.task_type(class="form-select") }}
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i class="bi bi-plus"></i> Add Task
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Do Tasks -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-check-circle"></i> Do Tasks ({{ do_tasks|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if do_tasks %}
+                            <div id="do-tasks-list" class="sortable-list">
+                                {% for task in do_tasks %}
+                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded task-item" data-task-id="{{ task.id }}">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor: move;"></i>
+                                        <span>{{ task.task_text }}</span>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                onclick="return confirm('Are you sure you want to delete this task?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No do tasks configured yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Don't Tasks -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-x-circle"></i> Don't Tasks ({{ dont_tasks|length }})
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if dont_tasks %}
+                            <div id="dont-tasks-list" class="sortable-list">
+                                {% for task in dont_tasks %}
+                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded task-item" data-task-id="{{ task.id }}">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-grip-vertical text-muted me-2 drag-handle" style="cursor: move;"></i>
+                                        <span>{{ task.task_text }}</span>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                onclick="return confirm('Are you sure you want to delete this task?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No don't tasks configured yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+// Initialize sortable lists
+const doTasksList = document.getElementById('do-tasks-list');
+const dontTasksList = document.getElementById('dont-tasks-list');
+
+if (doTasksList) {
+    new Sortable(doTasksList, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function(evt) {
+            updateTaskOrder('do', doTasksList);
+        }
+    });
+}
+
+if (dontTasksList) {
+    new Sortable(dontTasksList, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: function(evt) {
+            updateTaskOrder('dont', dontTasksList);
+        }
+    });
+}
+
+function updateTaskOrder(taskType, listElement) {
+    const taskIds = Array.from(listElement.children).map(item => item.dataset.taskId);
+    
+    fetch('{{ url_for("tasks.reorder_tasks") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            task_type: taskType,
+            task_ids: taskIds
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message or update UI as needed
+            console.log('Task order updated successfully');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating task order:', error);
+    });
+}
+</script>
+
+<style>
+.sortable-list {
+    min-height: 100px;
+}
+
+.task-item {
+    transition: all 0.3s ease;
+}
+
+.task-item:hover {
+    background-color: #f8f9fa;
+}
+
+.drag-handle:hover {
+    color: #007bff !important;
+}
+</style>
+{% endblock %}

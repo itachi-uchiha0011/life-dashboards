@@ -15,18 +15,21 @@ def index():
     today_logs = HabitLog.query.filter_by(user_id=current_user.id, log_date=today).all()
     logs_map = {log.habit_id: log for log in today_logs}
 
-    todos = (
+    # Get all todos for expand/collapse functionality
+    all_todos = (
         TodoItem.query.filter_by(user_id=current_user.id, kind="todo")
         .order_by(TodoItem.is_done.asc(), TodoItem.position.asc(), TodoItem.created_at.asc())
-        .limit(4)
         .all()
     )
-    not_todos = (
+    all_not_todos = (
         TodoItem.query.filter_by(user_id=current_user.id, kind="not_todo")
         .order_by(TodoItem.is_done.asc(), TodoItem.position.asc(), TodoItem.created_at.asc())
-        .limit(4)
         .all()
     )
+    
+    # Show first 4 by default
+    todos = all_todos[:4]
+    not_todos = all_not_todos[:4]
 
     today_entry = JournalEntry.query.filter_by(user_id=current_user.id, entry_date=today).first()
 
@@ -36,6 +39,8 @@ def index():
         logs_map=logs_map,
         todos=todos,
         not_todos=not_todos,
+        all_todos=all_todos,
+        all_not_todos=all_not_todos,
         today_entry=today_entry,
         today=today,
     )

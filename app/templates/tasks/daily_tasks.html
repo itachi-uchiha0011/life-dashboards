@@ -6,7 +6,10 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h2">Daily Tasks - {{ today.strftime('%B %d, %Y') }}</h1>
             <div class="d-flex gap-2">
-                <a href="{{ url_for('tasks.calendar_view') }}" class="btn btn-outline-primary">
+                <a href="{{ url_for('tasks.manage_tasks') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-gear"></i> Manage Tasks
+                </a>
+                <a href="{{ url_for('tasks.calendar') }}" class="btn btn-outline-primary">
                     <i class="bi bi-calendar3"></i> Calendar View
                 </a>
             </div>
@@ -34,6 +37,7 @@
 
         <form method="POST" action="{{ url_for('tasks.submit_daily_tasks') }}">
             {{ form.hidden_tag() }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             <div class="row">
                 <!-- Do's Section -->
@@ -41,26 +45,23 @@
                     <div class="card h-100">
                         <div class="card-header bg-success text-white">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-check-circle"></i> Do's ({{ form.calculate_do_points() }}/4)
+                                <i class="bi bi-check-circle"></i> Do's (<span id="do-count">0</span>/{{ do_tasks|length }})
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="form-check mb-3">
-                                {{ form.do_1(class="form-check-input") }}
-                                {{ form.do_1.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check mb-3">
-                                {{ form.do_2(class="form-check-input") }}
-                                {{ form.do_2.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check mb-3">
-                                {{ form.do_3(class="form-check-input") }}
-                                {{ form.do_3.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check">
-                                {{ form.do_4(class="form-check-input") }}
-                                {{ form.do_4.label(class="form-check-label") }}
-                            </div>
+                            {% if do_tasks %}
+                                {% for task in do_tasks %}
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input do-task-checkbox" type="checkbox" 
+                                           name="do_task_{{ task.id }}" id="do_task_{{ task.id }}">
+                                    <label class="form-check-label" for="do_task_{{ task.id }}">
+                                        {{ task.task_text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No do tasks configured. <a href="{{ url_for('tasks.manage_tasks') }}">Add some tasks</a>.</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -70,26 +71,23 @@
                     <div class="card h-100">
                         <div class="card-header bg-danger text-white">
                             <h5 class="card-title mb-0">
-                                <i class="bi bi-x-circle"></i> Don'ts ({{ form.calculate_dont_points() }}/4)
+                                <i class="bi bi-x-circle"></i> Don'ts (<span id="dont-count">0</span>/{{ dont_tasks|length }})
                             </h5>
                         </div>
                         <div class="card-body">
-                            <div class="form-check mb-3">
-                                {{ form.dont_1(class="form-check-input") }}
-                                {{ form.dont_1.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check mb-3">
-                                {{ form.dont_2(class="form-check-input") }}
-                                {{ form.dont_2.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check mb-3">
-                                {{ form.dont_3(class="form-check-input") }}
-                                {{ form.dont_3.label(class="form-check-label") }}
-                            </div>
-                            <div class="form-check">
-                                {{ form.dont_4(class="form-check-input") }}
-                                {{ form.dont_4.label(class="form-check-label") }}
-                            </div>
+                            {% if dont_tasks %}
+                                {% for task in dont_tasks %}
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input dont-task-checkbox" type="checkbox" 
+                                           name="dont_task_{{ task.id }}" id="dont_task_{{ task.id }}">
+                                    <label class="form-check-label" for="dont_task_{{ task.id }}">
+                                        {{ task.task_text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No don't tasks configured. <a href="{{ url_for('tasks.manage_tasks') }}">Add some tasks</a>.</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -151,16 +149,14 @@
 <script>
 // Auto-calculate and update point displays
 function updatePointDisplays() {
-    const doPoints = document.querySelectorAll('input[name^="do_"]:checked').length;
-    const dontPoints = document.querySelectorAll('input[name^="dont_"]:checked').length;
+    const doPoints = document.querySelectorAll('.do-task-checkbox:checked').length;
+    const dontPoints = document.querySelectorAll('.dont-task-checkbox:checked').length;
     const journalPoint = document.querySelector('input[name="journal_point"]:checked') ? 1 : 0;
     const learningPoint = document.querySelector('input[name="learning_point"]:checked') ? 1 : 0;
     
     // Update the display in the card headers
-    document.querySelector('.card-header.bg-success h5').innerHTML = 
-        `<i class="bi bi-check-circle"></i> Do's (${doPoints}/4)`;
-    document.querySelector('.card-header.bg-danger h5').innerHTML = 
-        `<i class="bi bi-x-circle"></i> Don'ts (${dontPoints}/4)`;
+    document.getElementById('do-count').textContent = doPoints;
+    document.getElementById('dont-count').textContent = dontPoints;
     document.querySelector('.card-header.bg-info h5').innerHTML = 
         `<i class="bi bi-journal-text"></i> Journal Entry (${journalPoint}/1)`;
     document.querySelector('.card-header.bg-warning h5').innerHTML = 
