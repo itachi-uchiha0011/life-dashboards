@@ -24,7 +24,8 @@ with app.app_context():
                 print("Database tables created successfully")
             except Exception as create_error:
                 print(f"Failed to create database tables: {create_error}")
-                raise create_error
+                # Don't raise error, continue with app startup
+                print("Continuing without database initialization...")
         
         # Run migrations
         try:
@@ -39,10 +40,12 @@ with app.app_context():
             except Exception as create_error:
                 print(f"Failed to create tables as fallback: {create_error}")
                 # Continue anyway for development
+                print("Continuing without database initialization...")
                 
     except Exception as e:
         print(f"Database initialization error: {e}")
         # Continue anyway for development
+        print("Continuing without database initialization...")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
