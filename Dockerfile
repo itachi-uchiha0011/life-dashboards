@@ -50,5 +50,9 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get(f'http://localhost:$PORT/health', timeout=10)" || exit 1
 
-# Start command (Render.com compatible)
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 2 --max-requests 1000 --max-requests-jitter 100 wsgi:app
+# Copy entrypoint and make executable
+COPY --chown=appuser:appuser docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+# Start via entrypoint that runs migrations first
+CMD ["/app/docker-entrypoint.sh"]
