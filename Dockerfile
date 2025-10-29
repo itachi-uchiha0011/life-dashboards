@@ -43,12 +43,13 @@ RUN mkdir -p /app/instance /app/uploads /app/static/uploads && \
 # Switch to non-root user
 USER appuser
 
-# Expose port (Render.com uses PORT environment variable)
-EXPOSE $PORT
+# Expose a fixed port (Render sets PORT at runtime)
+# EXPOSE cannot take env vars during build, so use a number
+EXPOSE 10000
 
-# Health check
+# Health check endpoint that does not require DB
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get(f'http://localhost:$PORT/health', timeout=10)" || exit 1
+    CMD python -c "import os,requests; requests.get(f'http://localhost:{os.environ.get(\"PORT\", 10000)}/status', timeout=10)" || exit 1
 
 # Copy entrypoint and make executable
 COPY --chown=appuser:appuser docker-entrypoint.sh /app/docker-entrypoint.sh

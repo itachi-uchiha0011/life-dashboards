@@ -1,105 +1,37 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
+*.pyo
+*.pyd
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# Virtual environments
+# Virtual envs
 venv/
-env/
-ENV/
-env.bak/
-venv.bak/
+new_venv/
+.test_env/
+test_env/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+# Local data
+instance/
+uploads/
 
 # Git
 .git/
 .gitignore
 
-# Docker
-Dockerfile*
-docker-compose*.yml
-.dockerignore
+# OS / editor
+.DS_Store
+*.swp
+*.swo
 
-# Documentation
-README.md
-*.md
-docs/
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-
-# Logs
-*.log
-logs/
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Environment variables (keep .env.production for Docker)
-.env
-.env.local
-.env.development
-.env.test
-# .env.production - Keep this for Docker production builds
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-
-# Node modules (if any)
+# Node
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Backup files
-*.backup
-*.bak
+# Docker
+Dockerfile.dev
+Dockerfile.render
+Dockerfile.sqlite
 
-# Development files
-requirements-dev.txt
-test_requirements.py
+# Build caches
+.cache/
