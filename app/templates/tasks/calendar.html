@@ -9,11 +9,11 @@
                 <a href="{{ url_for('tasks.daily_tasks') }}" class="btn btn-outline-primary">
                     <i class="bi bi-list-check"></i> Daily Tasks
                 </a>
-                <a href="{{ url_for('tasks.calendar_view', year=prev_year, month=prev_month) }}" 
+                <a href="{{ url_for('tasks.calendar', year=prev_year, month=prev_month) }}" 
                    class="btn btn-outline-secondary">
                     <i class="bi bi-chevron-left"></i> Previous
                 </a>
-                <a href="{{ url_for('tasks.calendar_view', year=next_year, month=next_month) }}" 
+                <a href="{{ url_for('tasks.calendar', year=next_year, month=next_month) }}" 
                    class="btn btn-outline-secondary">
                     Next <i class="bi bi-chevron-right"></i>
                 </a>
